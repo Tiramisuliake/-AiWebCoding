@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="5c567db5-afa1-4e69-8746-e18539bc0ba9" name="更改" comment="">
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/backend-dev/findings.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/backend-dev/progress.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/backend-dev/task_plan.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/decisions.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/docs/api-contracts.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/docs/architecture.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/docs/index.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/docs/invariants.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/findings.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/frontend-dev/findings.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/frontend-dev/progress.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/frontend-dev/task-scaffold/findings.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/frontend-dev/task-scaffold/progress.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/frontend-dev/task-scaffold/task_plan.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/frontend-dev/task_plan.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/progress.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/researcher/findings.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/researcher/progress.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/researcher/research-rbac/findings.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/researcher/research-rbac/progress.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/researcher/research-rbac/task_plan.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/researcher/task_plan.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/reviewer/findings.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/reviewer/progress.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/reviewer/task_plan.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/task_plan.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.plans/web-admin/team-snapshot.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../CLAUDE.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/backend.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/claudeCodeTabState.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/apis/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/apis/auth/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/apis/auth/routes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/apis/permissions/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/apis/permissions/routes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/apis/roles/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/apis/roles/routes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/apis/users/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/apis/users/routes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/components/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/components/response.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/conf/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/conf/config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/conf/extensions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/const/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/const/permissions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/database/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/database/base.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/database/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/database/session.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/decorators.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/service/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/service/rbac_service.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tasks/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/tasks/sample.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/utils/logger.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/celery_worker.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/db_schema.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/seed.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/conftest.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_auth.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/.env.example" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/App.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/api/auth.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/api/http.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/api/rbac.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/assets/base.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/assets/design-tokens.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/components/AppLayout.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/composables/useI18n.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/i18n/messages.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/main.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/router/index.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/stores/auth.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/stores/locale.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/views/DashboardView.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/views/LoginView.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/views/PermissionsView.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/views/RolesView.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/src/views/UsersView.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../frontend/vite.config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../scripts/golden_rules.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../scripts/run_ci.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
+  <component name="ProjectId" id="3CFelLmHVppS6Kghtt7n0cGCCAk" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.db_schema.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenDjangoStructureViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;G:/py/aiweb/web-admin/backend&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RunManager" selected="Python.run">
+    <configuration name="db_schema" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="backend" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/scripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/scripts/db_schema.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="run" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="backend" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.run" />
+        <item itemvalue="Python.db_schema" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-1d06a55b98c1-91d5c284f522-JavaScript-PY-241.15989.155" />
+        <option value="bundled-python-sdk-babbdf50b680-7c6932dee5e4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-241.15989.155" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="5c567db5-afa1-4e69-8746-e18539bc0ba9" name="更改" comment="" />
+      <created>1775985895101</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1775985895101</updated>
+      <workItem from="1775985896219" duration="8488000" />
+      <workItem from="1775997412779" duration="221000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/backend$run.coverage" NAME="run 覆盖结果" MODIFIED="1775993399860" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/backend$db_schema.coverage" NAME="db_schema 覆盖结果" MODIFIED="1775992672480" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/scripts" />
+  </component>
+</project>
