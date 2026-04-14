@@ -1,4 +1,4 @@
-const messages = {
+﻿const messages = {
   "zh-CN": {
     common: {
       appName: "web-admin",
@@ -20,6 +20,7 @@ const messages = {
       users: "用户管理",
       roles: "角色管理",
       permissions: "权限管理",
+      menus: "菜单管理",
       create: "新建",
       assign: "分配",
       success: "操作成功",
@@ -42,7 +43,7 @@ const messages = {
     },
     dashboard: {
       title: "系统概览",
-      description: "RBAC 脚手架已就绪，可以继续落地业务模块与联调流程。",
+      description: "RBAC 脚手架已就绪，可继续落地业务模块与联调流程。",
       backendTitle: "后端能力",
       backendDesc: "Flask + Flask-RESTX + JWT + SQLAlchemy",
       frontendTitle: "前端能力",
@@ -73,7 +74,7 @@ const messages = {
       loadFailed: "加载用户失败",
       submitFailed: "提交失败",
       deleteFailed: "删除用户失败",
-      confirmDelete: "确认删除用户“{name}”吗？",
+      confirmDelete: "确认删除用户“{name}”？",
       passwordMin: "密码至少 8 位",
       usernameRequired: "用户名不能为空",
       emailRequired: "邮箱不能为空"
@@ -84,6 +85,7 @@ const messages = {
       createRole: "创建角色",
       editRole: "编辑角色",
       assignPermissions: "分配权限",
+      assignMenus: "分配菜单",
       roleName: "角色名称",
       description: "描述",
       permissionCount: "权限数量",
@@ -97,7 +99,9 @@ const messages = {
       saveFailed: "保存角色失败",
       deleteFailed: "删除角色失败",
       assignFailed: "分配权限失败",
-      confirmDelete: "确认删除角色“{name}”吗？"
+      assignMenuSuccess: "菜单分配已更新",
+      assignMenuFailed: "分配菜单失败",
+      confirmDelete: "确认删除角色“{name}”？"
     },
     permissions: {
       title: "权限列表",
@@ -105,6 +109,28 @@ const messages = {
       code: "权限码",
       description: "描述",
       loadFailed: "加载权限失败"
+    },
+    menus: {
+      title: "菜单管理",
+      newMenu: "新建菜单",
+      newChild: "新建子菜单",
+      createMenu: "创建菜单",
+      editMenu: "编辑菜单",
+      name: "名称",
+      parent: "父级",
+      route: "路由",
+      icon: "图标",
+      sort: "排序",
+      visible: "显示",
+      enabled: "启用",
+      permissionCode: "权限码",
+      createSuccess: "菜单创建成功",
+      updateSuccess: "菜单更新成功",
+      deleteSuccess: "菜单删除成功",
+      loadFailed: "加载菜单失败",
+      saveFailed: "保存菜单失败",
+      deleteFailed: "删除菜单失败",
+      confirmDelete: "确认删除菜单“{name}”？"
     },
     tabs: {
       actions: "标签管理",
@@ -134,6 +160,7 @@ const messages = {
       users: "Users",
       roles: "Roles",
       permissions: "Permissions",
+      menus: "Menus",
       create: "Create",
       assign: "Assign",
       success: "Success",
@@ -198,6 +225,7 @@ const messages = {
       createRole: "Create Role",
       editRole: "Edit Role",
       assignPermissions: "Assign Permissions",
+      assignMenus: "Assign Menus",
       roleName: "Role Name",
       description: "Description",
       permissionCount: "Permissions",
@@ -211,6 +239,8 @@ const messages = {
       saveFailed: "Save role failed",
       deleteFailed: "Delete role failed",
       assignFailed: "Assign permissions failed",
+      assignMenuSuccess: "Menus updated",
+      assignMenuFailed: "Assign menus failed",
       confirmDelete: "Delete role \"{name}\"?"
     },
     permissions: {
@@ -219,6 +249,28 @@ const messages = {
       code: "Code",
       description: "Description",
       loadFailed: "Failed to load permissions"
+    },
+    menus: {
+      title: "Menus",
+      newMenu: "New Menu",
+      newChild: "New Child",
+      createMenu: "Create Menu",
+      editMenu: "Edit Menu",
+      name: "Name",
+      parent: "Parent",
+      route: "Route",
+      icon: "Icon",
+      sort: "Sort",
+      visible: "Visible",
+      enabled: "Enabled",
+      permissionCode: "Permission Code",
+      createSuccess: "Menu created",
+      updateSuccess: "Menu updated",
+      deleteSuccess: "Menu deleted",
+      loadFailed: "Failed to load menus",
+      saveFailed: "Save menu failed",
+      deleteFailed: "Delete menu failed",
+      confirmDelete: "Delete menu \"{name}\"?"
     },
     tabs: {
       actions: "Tabs",

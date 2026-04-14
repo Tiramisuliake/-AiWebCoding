@@ -1,4 +1,4 @@
-from flask import request
+﻿from flask import request
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -7,10 +7,12 @@ from flask_jwt_extended import (
     jwt_required,
 )
 from flask_restx import Resource
+from sqlalchemy import select
 
-from ...conf.extensions import db
-from ...database.models import TokenBlocklist, User
 from ...components.response import fail, ok
+from ...database.models import TokenBlocklist
+from ...database.session import get_session
+from ...rbac.models import User
 from . import namespace
 
 
@@ -24,7 +26,8 @@ class LoginResource(Resource):
         if not username or not password:
             return fail(1001, "username and password are required", status=400)
 
-        user = User.query.filter_by(username=username).first()
+        session = get_session()
+        user = session.execute(select(User).where(User.username == username)).scalar_one_or_none()
         if user is None or not user.is_active or not user.check_password(password):
             return fail(2001, "invalid credentials", status=401)
 
@@ -48,9 +51,16 @@ class LogoutResource(Resource):
     @jwt_required()
     def post(self):
         jti = get_jwt().get("jti")
-        if jti and TokenBlocklist.query.filter_by(jti=jti).first() is None:
-            db.session.add(TokenBlocklist(jti=jti))
-            db.session.commit()
+        if not jti:
+            return ok(data=None)
+
+        session = get_session()
+        exists = session.execute(
+            select(TokenBlocklist.id).where(TokenBlocklist.jti == jti)
+        ).scalar_one_or_none()
+        if exists is None:
+            session.add(TokenBlocklist(jti=jti))
+            session.commit()
         return ok(data=None)
 
 
@@ -59,7 +69,13 @@ class RefreshResource(Resource):
     @jwt_required(refresh=True)
     def post(self):
         user_id = get_jwt_identity()
-        user = db.session.get(User, int(user_id)) if user_id else None
+        try:
+            user_pk = int(user_id)
+        except (TypeError, ValueError):
+            return fail(2001, "unauthorized", status=401)
+
+        session = get_session()
+        user = session.get(User, user_pk)
         if user is None:
             return fail(2001, "unauthorized", status=401)
         return ok({"access_token": create_access_token(identity=str(user.id))})

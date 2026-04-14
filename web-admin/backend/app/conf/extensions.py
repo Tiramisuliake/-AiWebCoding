@@ -1,14 +1,9 @@
-from celery import Celery, Task
+﻿from celery import Celery, Task
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
 
-
-db = SQLAlchemy(session_options={"autoflush": False})
 jwt = JWTManager()
 bcrypt = Bcrypt()
-migrate = Migrate()
 celery = Celery(__name__)
 
 

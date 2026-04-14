@@ -1,24 +1,31 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { useI18n } from "../composables/useI18n";
 import { useAuthStore } from "../stores/auth";
+import { useMenuStore } from "../stores/menu";
 import { useTabsStore } from "../stores/tabs";
 
 const authStore = useAuthStore();
+const menuStore = useMenuStore();
 const tabsStore = useTabsStore();
 const route = useRoute();
 const router = useRouter();
 const menuOpen = ref(false);
+const sidebarCollapsed = ref(false);
+const expandedGroupKeys = ref([]);
 const { t, locale, setLocale } = useI18n();
+const SIDEBAR_COLLAPSED_KEY = "web_admin_sidebar_collapsed";
 
-const navItems = computed(() => [
-  { name: "dashboard", path: "/", label: t("common.dashboard") },
-  { name: "users", path: "/users", label: t("common.users") },
-  { name: "roles", path: "/roles", label: t("common.roles") },
-  { name: "permissions", path: "/permissions", label: t("common.permissions") }
-]);
+const navItems = computed(() => menuStore.userMenuTree || []);
+const menuTitleKeyMap = Object.freeze({
+  "/": "common.dashboard",
+  "/users": "common.users",
+  "/roles": "common.roles",
+  "/permissions": "common.permissions",
+  "/menus": "common.menus"
+});
 
 const currentTitle = computed(() => {
   return route.meta?.titleKey ? t(route.meta.titleKey) : t("common.appName");
@@ -35,9 +42,26 @@ watch(
   () => route.fullPath,
   () => {
     tabsStore.ensureTab(route);
+    syncExpandedGroupsWithRoute();
+    if (window.innerWidth <= 900) {
+      menuOpen.value = false;
+    }
   },
   { immediate: true }
 );
+
+watch(
+  navItems,
+  () => {
+    syncExpandedGroupsWithRoute();
+  },
+  { deep: true }
+);
+
+onMounted(() => {
+  const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+  sidebarCollapsed.value = stored === "1";
+});
 
 async function onLogout() {
   await authStore.logout();
@@ -45,19 +69,119 @@ async function onLogout() {
 }
 
 function isActive(path) {
-  if (path === "/") {
-    return route.path === "/";
+  return isPathActive(path, route.path);
+}
+
+function isPathActive(path, currentPath) {
+  if (!path) {
+    return false;
   }
-  return route.path.startsWith(path);
+  if (path === "/") {
+    return currentPath === "/";
+  }
+  return currentPath.startsWith(path);
+}
+
+function getMenuKey(item) {
+  return String(item?.id ?? item?.route_path ?? item?.name ?? "");
+}
+
+function hasActiveDescendant(nodes, currentPath) {
+  for (const node of nodes || []) {
+    if (isPathActive(node.route_path, currentPath)) {
+      return true;
+    }
+    if (node.children?.length && hasActiveDescendant(node.children, currentPath)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isGroupExpanded(item) {
+  return expandedGroupKeys.value.includes(getMenuKey(item));
+}
+
+function isGroupActive(item) {
+  return isPathActive(item?.route_path, route.path) || hasActiveDescendant(item?.children, route.path);
+}
+
+function findAncestorKeysByPath(nodes, currentPath, ancestors = []) {
+  for (const node of nodes || []) {
+    if (!node.children?.length) {
+      continue;
+    }
+    const key = getMenuKey(node);
+    const nextAncestors = key ? [...ancestors, key] : ancestors;
+
+    if (hasActiveDescendant(node.children, currentPath)) {
+      const nested = findAncestorKeysByPath(node.children, currentPath, nextAncestors);
+      return nested.length ? nested : nextAncestors;
+    }
+
+    const nested = findAncestorKeysByPath(node.children, currentPath, nextAncestors);
+    if (nested.length) {
+      return nested;
+    }
+  }
+  return [];
+}
+
+function syncExpandedGroupsWithRoute() {
+  const ancestors = findAncestorKeysByPath(navItems.value, route.path);
+  if (!ancestors.length) {
+    return;
+  }
+  const next = new Set(expandedGroupKeys.value);
+  for (const key of ancestors) {
+    next.add(key);
+  }
+  expandedGroupKeys.value = [...next];
+}
+
+function onGroupToggle(item) {
+  const key = getMenuKey(item);
+  if (!key) {
+    return;
+  }
+  const next = new Set(expandedGroupKeys.value);
+  if (next.has(key)) {
+    next.delete(key);
+  } else {
+    next.add(key);
+  }
+  expandedGroupKeys.value = [...next];
 }
 
 function navigate(path) {
-  menuOpen.value = false;
+  if (!path) {
+    return;
+  }
+  if (window.innerWidth <= 900) {
+    menuOpen.value = false;
+  }
   router.push(path);
 }
 
 function onLocaleChange(value) {
   setLocale(value);
+}
+
+function onSidebarToggle() {
+  if (window.innerWidth <= 900) {
+    menuOpen.value = !menuOpen.value;
+    return;
+  }
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+  localStorage.setItem(SIDEBAR_COLLAPSED_KEY, sidebarCollapsed.value ? "1" : "0");
+}
+
+function resolveMenuTitle(item) {
+  const titleKey = menuTitleKeyMap[item?.route_path];
+  if (titleKey) {
+    return t(titleKey);
+  }
+  return item?.name || "";
 }
 
 function onTabClick(tabPane) {
@@ -93,8 +217,8 @@ function onTabCommand(command) {
 </script>
 
 <template>
-  <div class="layout-shell">
-    <aside class="sidebar" :class="{ open: menuOpen }">
+  <div class="layout-shell" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
+    <aside class="sidebar" :class="{ open: menuOpen, collapsed: sidebarCollapsed }">
       <div class="brand">
         <span class="brand-mark">WA</span>
         <div class="brand-text">
@@ -103,23 +227,48 @@ function onTabCommand(command) {
         </div>
       </div>
       <nav class="nav-list">
-        <button
-          v-for="item in navItems"
-          :key="item.name"
-          class="nav-item"
-          :class="{ active: isActive(item.path) }"
-          @click="navigate(item.path)"
-        >
-          <span class="nav-dot"></span>
-          {{ item.label }}
-        </button>
+        <template v-for="item in navItems" :key="item.id">
+          <button
+            v-if="!item.children?.length"
+            class="nav-item"
+            :class="{ active: isActive(item.route_path) }"
+            @click="navigate(item.route_path)"
+          >
+            <span class="nav-dot"></span>
+            <span class="nav-label">{{ resolveMenuTitle(item) }}</span>
+          </button>
+
+          <section v-else class="nav-group">
+            <button
+              class="nav-item nav-parent"
+              :class="{ active: isGroupActive(item), expanded: isGroupExpanded(item) }"
+              @click="onGroupToggle(item)"
+            >
+              <span class="nav-dot"></span>
+              <span class="nav-label">{{ resolveMenuTitle(item) }}</span>
+              <span class="nav-caret" :class="{ expanded: isGroupExpanded(item) }"></span>
+            </button>
+            <div v-show="isGroupExpanded(item)" class="nav-children">
+              <button
+                v-for="child in item.children"
+                :key="child.id"
+                class="nav-item nav-child"
+                :class="{ active: isActive(child.route_path) }"
+                @click="navigate(child.route_path)"
+              >
+                <span class="nav-dot"></span>
+                <span class="nav-label">{{ resolveMenuTitle(child) }}</span>
+              </button>
+            </div>
+          </section>
+        </template>
       </nav>
     </aside>
 
     <div class="layout-main">
       <header class="topbar">
         <div class="title-wrap">
-          <button class="menu-toggle" @click="menuOpen = !menuOpen">
+          <button class="menu-toggle" @click="onSidebarToggle">
             <span></span>
             <span></span>
             <span></span>
@@ -209,6 +358,11 @@ function onTabCommand(command) {
   display: grid;
   grid-template-columns: var(--aside-width) 1fr;
   background: linear-gradient(155deg, #f8fafc 0%, #eef2ff 100%);
+  transition: grid-template-columns 0.2s ease;
+}
+
+.layout-shell.sidebar-collapsed {
+  grid-template-columns: 78px 1fr;
 }
 
 .sidebar {
@@ -217,6 +371,21 @@ function onTabCommand(command) {
   padding: var(--space-3) var(--space-2);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 5;
+  overflow: hidden;
+  transition: padding 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar.collapsed {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.sidebar.collapsed .brand {
+  justify-content: center;
+}
+
+.sidebar.collapsed .brand-text {
+  display: none;
 }
 
 .brand {
@@ -257,6 +426,16 @@ function onTabCommand(command) {
   gap: 6px;
 }
 
+.nav-group {
+  display: grid;
+  gap: 4px;
+}
+
+.nav-children {
+  display: grid;
+  gap: 4px;
+}
+
 .nav-item {
   width: 100%;
   text-align: left;
@@ -272,6 +451,10 @@ function onTabCommand(command) {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.nav-label {
+  white-space: nowrap;
 }
 
 .nav-dot {
@@ -293,6 +476,51 @@ function onTabCommand(command) {
 
 .nav-item.active .nav-dot {
   background: #fff;
+}
+
+.nav-parent {
+  font-weight: 600;
+}
+
+.nav-parent .nav-label {
+  flex: 1;
+}
+
+.nav-caret {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  opacity: 0.75;
+}
+
+.nav-caret.expanded {
+  transform: rotate(225deg);
+}
+
+.nav-child {
+  margin-left: 14px;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.sidebar.collapsed .nav-label {
+  display: none;
+}
+
+.sidebar.collapsed .nav-child {
+  margin-left: 0;
+}
+
+.sidebar.collapsed .nav-caret,
+.sidebar.collapsed .nav-children {
+  display: none;
 }
 
 .layout-main {
@@ -335,7 +563,7 @@ function onTabCommand(command) {
   border: 0;
   background: rgba(148, 163, 184, 0.18);
   border-radius: var(--radius-base);
-  display: none;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   gap: 3px;
@@ -410,6 +638,10 @@ function onTabCommand(command) {
 
 @media (max-width: 900px) {
   .layout-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .layout-shell.sidebar-collapsed {
     grid-template-columns: 1fr;
   }
 

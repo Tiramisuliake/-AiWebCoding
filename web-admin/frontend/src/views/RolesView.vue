@@ -4,10 +4,13 @@ import { ElMessage, ElMessageBox } from "element-plus";
 
 import { useI18n } from "../composables/useI18n";
 import {
+  assignRoleMenus,
   assignRolePermissions,
   createRole,
   deleteRole,
+  fetchMenuTree,
   fetchPermissions,
+  fetchRoleMenus,
   fetchRolePermissions,
   fetchRoles,
   updateRole
@@ -19,6 +22,7 @@ const submitting = ref(false);
 const items = ref([]);
 const total = ref(0);
 const permissionOptions = ref([]);
+const menuOptions = ref([]);
 
 const roleDialogVisible = ref(false);
 const roleFormRef = ref();
@@ -33,6 +37,10 @@ const permissionDialogVisible = ref(false);
 const permissionSubmitting = ref(false);
 const permissionTargetRole = ref(null);
 const permissionSelection = ref([]);
+const menuDialogVisible = ref(false);
+const menuSubmitting = ref(false);
+const menuTargetRole = ref(null);
+const menuTreeRef = ref();
 
 const roleRules = {
   name: [{ required: true, message: t("roles.roleNameRequired"), trigger: "blur" }]
@@ -45,9 +53,10 @@ function normalizeError(error, fallbackKey) {
 async function loadData() {
   loading.value = true;
   try {
-    const [roleResponse, permissionResponse] = await Promise.all([
+    const [roleResponse, permissionResponse, menuResponse] = await Promise.all([
       fetchRoles({ page: 1, per_page: 100 }),
-      fetchPermissions()
+      fetchPermissions(),
+      fetchMenuTree()
     ]);
 
     if (roleResponse.code !== 0) {
@@ -56,10 +65,14 @@ async function loadData() {
     if (permissionResponse.code !== 0) {
       throw new Error(permissionResponse.msg || t("permissions.loadFailed"));
     }
+    if (menuResponse.code !== 0) {
+      throw new Error(menuResponse.msg || t("menus.loadFailed"));
+    }
 
     items.value = roleResponse.data.items || [];
     total.value = roleResponse.data.total || 0;
     permissionOptions.value = permissionResponse.data.items || [];
+    menuOptions.value = menuResponse.data.items || [];
   } catch (error) {
     ElMessage.error(normalizeError(error, "roles.loadFailed"));
   } finally {
@@ -178,6 +191,48 @@ async function submitPermissionAssignment() {
   }
 }
 
+async function openMenuDialog(row) {
+  menuTargetRole.value = row;
+  menuDialogVisible.value = true;
+
+  try {
+    const response = await fetchRoleMenus(row.id);
+    if (response.code !== 0) {
+      throw new Error(response.msg || t("roles.assignMenuFailed"));
+    }
+    const checkedIds = (response.data.menus || []).map((item) => item.id);
+    setTimeout(() => {
+      menuTreeRef.value?.setCheckedKeys(checkedIds);
+    });
+  } catch (error) {
+    menuDialogVisible.value = false;
+    ElMessage.error(normalizeError(error, "roles.assignMenuFailed"));
+  }
+}
+
+async function submitMenuAssignment() {
+  if (!menuTargetRole.value) {
+    return;
+  }
+  menuSubmitting.value = true;
+  try {
+    const checkedKeys = menuTreeRef.value?.getCheckedKeys(false) || [];
+    const halfCheckedKeys = menuTreeRef.value?.getHalfCheckedKeys() || [];
+    const menuIds = [...new Set([...checkedKeys, ...halfCheckedKeys])];
+
+    const response = await assignRoleMenus(menuTargetRole.value.id, menuIds);
+    if (response.code !== 0) {
+      throw new Error(response.msg || t("roles.assignMenuFailed"));
+    }
+    menuDialogVisible.value = false;
+    ElMessage.success(t("roles.assignMenuSuccess"));
+  } catch (error) {
+    ElMessage.error(normalizeError(error, "roles.assignMenuFailed"));
+  } finally {
+    menuSubmitting.value = false;
+  }
+}
+
 onMounted(loadData);
 </script>
 
@@ -197,12 +252,15 @@ onMounted(loadData);
         <el-table-column prop="name" :label="t('roles.roleName')" />
         <el-table-column prop="description" :label="t('roles.description')" />
         <el-table-column prop="permission_count" :label="t('roles.permissionCount')" width="120" />
-        <el-table-column :label="t('common.actions')" width="320" fixed="right">
+        <el-table-column :label="t('common.actions')" width="420" fixed="right">
           <template #default="{ row }">
             <el-space>
               <el-button link type="primary" @click="openEditDialog(row)">{{ t("common.edit") }}</el-button>
               <el-button link type="warning" @click="openPermissionDialog(row)">
                 {{ t("common.assign") }}
+              </el-button>
+              <el-button link type="success" @click="openMenuDialog(row)">
+                {{ t("roles.assignMenus") }}
               </el-button>
               <el-button link type="danger" @click="removeRole(row)">{{ t("common.delete") }}</el-button>
             </el-space>
@@ -256,6 +314,31 @@ onMounted(loadData);
           type="primary"
           :loading="permissionSubmitting"
           @click="submitPermissionAssignment"
+        >
+          {{ t("common.save") }}
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="menuDialogVisible"
+      :title="`${t('roles.assignMenus')} - ${menuTargetRole?.name || ''}`"
+      width="620px"
+    >
+      <el-tree
+        ref="menuTreeRef"
+        :data="menuOptions"
+        node-key="id"
+        show-checkbox
+        default-expand-all
+        :props="{ label: 'name', children: 'children' }"
+      />
+      <template #footer>
+        <el-button @click="menuDialogVisible = false">{{ t("common.cancel") }}</el-button>
+        <el-button
+          type="primary"
+          :loading="menuSubmitting"
+          @click="submitMenuAssignment"
         >
           {{ t("common.save") }}
         </el-button>

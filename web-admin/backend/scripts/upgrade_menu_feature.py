@@ -1,5 +1,4 @@
 ﻿import argparse
-import getpass
 import sys
 from pathlib import Path
 
@@ -14,45 +13,41 @@ from app.utils import logger
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Seed RBAC baseline data.")
-    parser.add_argument("--username", default="admin", help="Admin username")
-    parser.add_argument("--email", default="admin@example.com", help="Admin email")
+    parser = argparse.ArgumentParser(
+        description="Upgrade existing RBAC schema/data for menu management feature."
+    )
+    parser.add_argument("--env", default="development", help="App config env name.")
+    parser.add_argument("--username", default="admin", help="Admin username for seed sync.")
+    parser.add_argument("--email", default="admin@example.com", help="Admin email for seed sync.")
     parser.add_argument(
         "--password",
-        default=None,
-        help="Admin password (if omitted, interactive prompt is used)",
-    )
-    parser.add_argument(
-        "--create-tables",
-        action="store_true",
-        help="Create tables before seeding (for fresh local setup)",
+        default="password123",
+        help="Admin password for seed sync (min 8 chars).",
     )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    password = args.password
-    if not password:
-        password = getpass.getpass("Admin password (min 8 chars): ").strip()
-    if len(password) < 8:
+    if len(args.password) < 8:
         raise SystemExit("Password must be at least 8 characters.")
 
-    app = create_app()
+    app = create_app(config_name=args.env)
     with app.app_context():
-        if args.create_tables:
-            create_all()
+        create_all()
         session = get_session()
         result = seed_rbac(
             session=session,
             admin_username=args.username,
             admin_email=args.email,
-            admin_password=password,
+            admin_password=args.password,
         )
 
-    logger.info("Seed completed:")
+    logger.info("Menu feature upgrade completed:")
     logger.info("permissions_created: {}", result["permissions_created"])
     logger.info("permissions_total:   {}", result["permissions_total"])
+    logger.info("menus_created:       {}", result["menus_created"])
+    logger.info("menus_total:         {}", result["menus_total"])
     logger.info("admin_user_id:       {}", result["admin_user_id"])
     logger.info("admin_role_id:       {}", result["admin_role_id"])
 

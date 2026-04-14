@@ -67,7 +67,44 @@ export async function assignRolePermissions(roleId, permissionIds) {
   return data;
 }
 
+export async function fetchRoleMenus(roleId) {
+  const { data } = await http.get(`/roles/${roleId}/menus`);
+  return data;
+}
+
+export async function assignRoleMenus(roleId, menuIds) {
+  const { data } = await http.post(`/roles/${roleId}/menus`, {
+    menu_ids: menuIds
+  });
+  return data;
+}
+
 export async function fetchPermissions() {
   const { data } = await http.get("/permissions");
+  return data;
+}
+
+export async function fetchMenuTree(params = {}) {
+  const { data } = await http.get("/menus", { params });
+  return data;
+}
+
+export async function fetchMyMenuTree() {
+  const { data } = await http.get("/menus/my-tree");
+  return data;
+}
+
+export async function createMenu(payload) {
+  const { data } = await http.post("/menus", payload);
+  return data;
+}
+
+export async function updateMenu(menuId, payload) {
+  const { data } = await http.put(`/menus/${menuId}`, payload);
+  return data;
+}
+
+export async function deleteMenu(menuId) {
+  const { data } = await http.delete(`/menus/${menuId}`);
   return data;
 }

@@ -1,13 +1,13 @@
-from sqlalchemy import or_
-
-from flask import request
+﻿from flask import request
 from flask_jwt_extended import jwt_required
 from flask_restx import Resource
+from sqlalchemy import or_, select
 
-from ...decorators import require_permission
-from ...conf.extensions import db
-from ...database.models import Role, User
 from ...components.response import fail, ok
+from ...database.pagination import paginate_scalars
+from ...database.session import get_session
+from ...decorators import require_permission
+from ...rbac.models import Role, User
 from . import namespace
 
 
@@ -29,25 +29,30 @@ class UserListResource(Resource):
         keyword = request.args.get("keyword", "", type=str).strip()
         is_active = _parse_bool(request.args.get("is_active"))
 
-        query = User.query
+        statement = select(User)
         if keyword:
             like_keyword = f"%{keyword}%"
-            query = query.filter(
+            statement = statement.where(
                 or_(User.username.like(like_keyword), User.email.like(like_keyword))
             )
         if is_active is not None:
-            query = query.filter(User.is_active.is_(is_active))
+            statement = statement.where(User.is_active.is_(is_active))
 
-        pagination = query.order_by(User.id.asc()).paginate(
-            page=page, per_page=per_page, error_out=False
+        session = get_session()
+        pagination = paginate_scalars(
+            session,
+            statement.order_by(User.id.asc()),
+            page=page,
+            per_page=per_page,
         )
+
         return ok(
             {
-                "items": [item.to_dict(include_roles=True) for item in pagination.items],
-                "total": pagination.total,
-                "page": pagination.page,
-                "per_page": pagination.per_page,
-                "pages": pagination.pages,
+                "items": [item.to_dict(include_roles=True) for item in pagination["items"]],
+                "total": pagination["total"],
+                "page": pagination["page"],
+                "per_page": pagination["per_page"],
+                "pages": pagination["pages"],
             }
         )
 
@@ -65,18 +70,21 @@ class UserListResource(Resource):
         if not username or not email or len(password) < 8:
             return fail(1001, "invalid request payload", status=400)
 
-        if User.query.filter((User.username == username) | (User.email == email)).first():
+        session = get_session()
+        duplicate = session.execute(
+            select(User.id).where((User.username == username) | (User.email == email))
+        ).scalar_one_or_none()
+        if duplicate:
             return fail(1003, "username or email already exists", status=409)
 
         user = User(username=username, email=email, is_active=is_active)
         user.set_password(password)
 
         if isinstance(role_ids, list) and role_ids:
-            roles = Role.query.filter(Role.id.in_(role_ids)).all()
-            user.roles = roles
+            user.roles = session.execute(select(Role).where(Role.id.in_(role_ids))).scalars().all()
 
-        db.session.add(user)
-        db.session.commit()
+        session.add(user)
+        session.commit()
         return ok(user.to_dict(include_roles=True), status=201)
 
 
@@ -85,7 +93,8 @@ class UserResource(Resource):
     @jwt_required()
     @require_permission("user:read")
     def get(self, user_id):
-        user = db.session.get(User, user_id)
+        session = get_session()
+        user = session.get(User, user_id)
         if user is None:
             return fail(1002, "user not found", status=404)
         return ok(user.to_dict(include_roles=True))
@@ -93,7 +102,8 @@ class UserResource(Resource):
     @jwt_required()
     @require_permission("user:update")
     def put(self, user_id):
-        user = db.session.get(User, user_id)
+        session = get_session()
+        user = session.get(User, user_id)
         if user is None:
             return fail(1002, "user not found", status=404)
 
@@ -102,7 +112,9 @@ class UserResource(Resource):
             email = str(payload.get("email", "")).strip()
             if not email:
                 return fail(1001, "email cannot be empty", status=400)
-            duplicate = User.query.filter(User.email == email, User.id != user.id).first()
+            duplicate = session.execute(
+                select(User.id).where(User.email == email, User.id != user.id)
+            ).scalar_one_or_none()
             if duplicate:
                 return fail(1003, "email already exists", status=409)
             user.email = email
@@ -119,17 +131,18 @@ class UserResource(Resource):
                 return fail(1001, "password must be at least 8 characters", status=400)
             user.set_password(password)
 
-        db.session.commit()
+        session.commit()
         return ok(user.to_dict(include_roles=True))
 
     @jwt_required()
     @require_permission("user:delete")
     def delete(self, user_id):
-        user = db.session.get(User, user_id)
+        session = get_session()
+        user = session.get(User, user_id)
         if user is None:
             return fail(1002, "user not found", status=404)
-        db.session.delete(user)
-        db.session.commit()
+        session.delete(user)
+        session.commit()
         return ok(data=None)
 
 
@@ -138,7 +151,8 @@ class UserRolesResource(Resource):
     @jwt_required()
     @require_permission("user:read")
     def get(self, user_id):
-        user = db.session.get(User, user_id)
+        session = get_session()
+        user = session.get(User, user_id)
         if user is None:
             return fail(1002, "user not found", status=404)
         return ok(
@@ -154,7 +168,8 @@ class UserRolesResource(Resource):
     @jwt_required()
     @require_permission("user:assign_role")
     def post(self, user_id):
-        user = db.session.get(User, user_id)
+        session = get_session()
+        user = session.get(User, user_id)
         if user is None:
             return fail(1002, "user not found", status=404)
 
@@ -163,13 +178,13 @@ class UserRolesResource(Resource):
         if not isinstance(role_ids, list):
             return fail(1001, "role_ids must be a list", status=400)
 
-        roles = Role.query.filter(Role.id.in_(role_ids)).all() if role_ids else []
+        roles = session.execute(select(Role).where(Role.id.in_(role_ids))).scalars().all() if role_ids else []
         existing_ids = {role.id for role in user.roles}
         for role in roles:
             if role.id not in existing_ids:
                 user.roles.append(role)
 
-        db.session.commit()
+        session.commit()
         return ok({"user_id": user.id, "role_ids": [role.id for role in user.roles]})
 
 
@@ -178,11 +193,12 @@ class UserRoleDeleteResource(Resource):
     @jwt_required()
     @require_permission("user:assign_role")
     def delete(self, user_id, role_id):
-        user = db.session.get(User, user_id)
-        role = db.session.get(Role, role_id)
+        session = get_session()
+        user = session.get(User, user_id)
+        role = session.get(Role, role_id)
         if user is None or role is None:
             return fail(1002, "resource not found", status=404)
         if role in user.roles:
             user.roles.remove(role)
-            db.session.commit()
+            session.commit()
         return ok(data=None)

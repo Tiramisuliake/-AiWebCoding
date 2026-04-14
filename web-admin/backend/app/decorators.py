@@ -1,10 +1,10 @@
-from functools import wraps
+﻿from functools import wraps
 
 from flask_jwt_extended import get_jwt_identity
 
-from .conf.extensions import db
-from .database.models import User
 from .components.response import fail
+from .database.session import get_session
+from .rbac.models import User
 
 
 def require_permission(permission_code):
@@ -12,7 +12,16 @@ def require_permission(permission_code):
         @wraps(fn)
         def wrapped(*args, **kwargs):
             user_id = get_jwt_identity()
-            user = db.session.get(User, user_id) if user_id else None
+            if not user_id:
+                return fail(2001, "unauthorized", status=401)
+
+            try:
+                user_pk = int(user_id)
+            except (TypeError, ValueError):
+                return fail(2001, "unauthorized", status=401)
+
+            session = get_session()
+            user = session.get(User, user_pk)
             if user is None:
                 return fail(2001, "unauthorized", status=401)
             if not user.has_permission(permission_code):

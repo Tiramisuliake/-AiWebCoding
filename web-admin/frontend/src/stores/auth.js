@@ -2,12 +2,14 @@ import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 
 import * as authApi from "../api/auth";
+import { useMenuStore } from "./menu";
 
 const ACCESS_KEY = "web_admin_access_token";
 const REFRESH_KEY = "web_admin_refresh_token";
 const USER_KEY = "web_admin_user";
 
 export const useAuthStore = defineStore("auth", () => {
+  const menuStore = useMenuStore();
   const accessToken = ref("");
   const refreshTokenValue = ref("");
   const user = ref(null);
@@ -46,6 +48,7 @@ export const useAuthStore = defineStore("auth", () => {
     accessToken.value = "";
     refreshTokenValue.value = "";
     user.value = null;
+    menuStore.reset();
     persist();
   }
 
@@ -61,6 +64,7 @@ export const useAuthStore = defineStore("auth", () => {
       refreshTokenValue.value = response.data.refresh_token;
       user.value = response.data.user;
       persist();
+      await menuStore.loadMyMenus();
     } finally {
       loading.value = false;
     }

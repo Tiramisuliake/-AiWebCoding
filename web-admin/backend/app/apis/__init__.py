@@ -2,6 +2,7 @@ from flask import Blueprint
 from flask_restx import Api
 
 from .auth import namespace as auth_namespace
+from .menus import namespace as menus_namespace
 from .permissions import namespace as permissions_namespace
 from .roles import namespace as roles_namespace
 from .users import namespace as users_namespace
@@ -19,3 +20,4 @@ api.add_namespace(auth_namespace, path="/auth")
 api.add_namespace(users_namespace, path="/users")
 api.add_namespace(roles_namespace, path="/roles")
 api.add_namespace(permissions_namespace, path="/permissions")
+api.add_namespace(menus_namespace, path="/menus")

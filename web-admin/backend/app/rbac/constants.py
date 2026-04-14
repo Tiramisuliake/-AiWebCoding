@@ -1,4 +1,4 @@
-DEFAULT_PERMISSION_CODES = [
+﻿DEFAULT_PERMISSION_CODES = [
     "user:list",
     "user:read",
     "user:create",
@@ -20,3 +20,6 @@ DEFAULT_PERMISSION_CODES = [
     "menu:delete",
     "role:assign_menu",
 ]
+
+
+__all__ = ["DEFAULT_PERMISSION_CODES"]

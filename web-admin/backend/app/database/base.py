@@ -1,3 +1,8 @@
-from ..conf.extensions import db
+﻿from sqlalchemy.orm import DeclarativeBase
 
-__all__ = ["db"]
+
+class Base(DeclarativeBase):
+    """Base declarative model for all ORM entities."""
+
+
+__all__ = ["Base"]

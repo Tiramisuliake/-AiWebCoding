@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import argparse
 import keyword
@@ -30,10 +30,10 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app import create_app
-from app.conf.extensions import db
+from app.database import create_all
 from app.utils import logger
 
-DEFAULT_MODELS_PATH = PROJECT_ROOT / "app" / "database" / "models.py"
+DEFAULT_MODELS_PATH = PROJECT_ROOT / "app" / "rbac" / "models_reflected.py"
 
 
 def _quote_mysql(name: str) -> str:
@@ -67,7 +67,6 @@ def ensure_database_exists(uri: str) -> None:
         return
 
     if url.drivername.startswith("mysql"):
-        # SQLAlchemy keeps the original DB when database=None; use mysql system DB instead.
         admin_url = url.set(database="mysql")
         with create_engine(admin_url).begin() as conn:
             conn.execute(
@@ -96,8 +95,9 @@ def init_db_from_orm(uri: str, env: str) -> None:
     app = create_app(config_name=env, config_overrides=overrides)
     with app.app_context():
         import app.database.models  # noqa: F401
+        import app.rbac.models  # noqa: F401
 
-        db.create_all()
+        create_all()
 
 
 def _snake_to_camel(name: str) -> str:
@@ -117,34 +117,34 @@ def _safe_attr(name: str) -> str:
 
 def _type_expr(col_type: Any) -> str:
     if isinstance(col_type, String):
-        return f"db.String({col_type.length})" if col_type.length else "db.String"
+        return f"String({col_type.length})" if col_type.length else "String"
     if isinstance(col_type, Text):
-        return "db.Text"
+        return "Text"
     if isinstance(col_type, BigInteger):
-        return "db.BigInteger"
+        return "BigInteger"
     if isinstance(col_type, SmallInteger):
-        return "db.SmallInteger"
+        return "SmallInteger"
     if isinstance(col_type, Integer):
-        return "db.Integer"
+        return "Integer"
     if isinstance(col_type, Boolean):
-        return "db.Boolean"
+        return "Boolean"
     if isinstance(col_type, DateTime):
-        return "db.DateTime"
+        return "DateTime"
     if isinstance(col_type, Date):
-        return "db.Date"
+        return "Date"
     if isinstance(col_type, Time):
-        return "db.Time"
+        return "Time"
     if isinstance(col_type, Float):
-        return "db.Float"
+        return "Float"
     if isinstance(col_type, Numeric):
         if col_type.precision is not None and col_type.scale is not None:
-            return f"db.Numeric({col_type.precision}, {col_type.scale})"
-        return "db.Numeric"
+            return f"Numeric({col_type.precision}, {col_type.scale})"
+        return "Numeric"
     if isinstance(col_type, JSON):
-        return "db.JSON"
+        return "JSON"
     if isinstance(col_type, LargeBinary):
-        return "db.LargeBinary"
-    return "db.String"
+        return "LargeBinary"
+    return "String"
 
 
 def _is_association_table(table: Any) -> bool:
@@ -161,7 +161,7 @@ def _column_code(column: Any, with_name: bool) -> str:
     first_fk = next(iter(column.foreign_keys), None)
     if first_fk is not None:
         target = str(first_fk.column)
-        fk_code = f'db.ForeignKey("{target}"'
+        fk_code = f'ForeignKey("{target}"'
         ondelete = getattr(first_fk, "ondelete", None)
         if ondelete:
             fk_code += f', ondelete="{ondelete}"'
@@ -179,7 +179,7 @@ def _column_code(column: Any, with_name: bool) -> str:
     if column.index:
         kwargs.append("index=True")
 
-    return f"db.Column({', '.join(args + kwargs)})"
+    return f"Column({', '.join(args + kwargs)})"
 
 
 def _plural_table_attr(table_name: str) -> str:
@@ -209,11 +209,11 @@ def _render_models_file(metadata: MetaData) -> str:
         right_attr = _plural_table_attr(left_table)
 
         left_code = (
-            f'    {left_attr} = db.relationship('
+            f'    {left_attr} = relationship('
             f'"{class_map[right_table]}", secondary={assoc_var}, back_populates="{right_attr}")'
         )
         right_code = (
-            f'    {right_attr} = db.relationship('
+            f'    {right_attr} = relationship('
             f'"{class_map[left_table]}", secondary={assoc_var}, back_populates="{left_attr}")'
         )
 
@@ -223,17 +223,38 @@ def _render_models_file(metadata: MetaData) -> str:
             relationships[right_table].append(right_code)
 
     lines: list[str] = [
-        "from datetime import datetime",
+        "from __future__ import annotations",
+        "",
+        "from sqlalchemy import (",
+        "    BigInteger,",
+        "    Boolean,",
+        "    Column,",
+        "    Date,",
+        "    DateTime,",
+        "    Float,",
+        "    ForeignKey,",
+        "    Integer,",
+        "    JSON,",
+        "    LargeBinary,",
+        "    Numeric,",
+        "    SmallInteger,",
+        "    String,",
+        "    Table,",
+        "    Text,",
+        "    Time,",
+        ")",
+        "from sqlalchemy.orm import relationship",
         "",
         "from ..conf.extensions import bcrypt",
-        "from .base import db",
+        "from ..database.base import Base",
         "",
     ]
 
     for table in assoc_tables:
         assoc_var = assoc_vars[table.name]
-        lines.append(f"{assoc_var} = db.Table(")
+        lines.append(f"{assoc_var} = Table(")
         lines.append(f'    "{table.name}",')
+        lines.append("    Base.metadata,")
         for column in table.columns:
             lines.append(f"    {_column_code(column, with_name=True)},")
         lines.append(")")
@@ -241,7 +262,7 @@ def _render_models_file(metadata: MetaData) -> str:
 
     for table in entity_tables:
         class_name = class_map[table.name]
-        lines.append(f"class {class_name}(db.Model):")
+        lines.append(f"class {class_name}(Base):")
         lines.append(f'    __tablename__ = "{table.name}"')
         lines.append("")
 
@@ -282,7 +303,10 @@ def _render_models_file(metadata: MetaData) -> str:
             lines.append("        self.password_hash = bcrypt.generate_password_hash(plain_password).decode(\"utf-8\")")
             lines.append("")
             lines.append("    def check_password(self, plain_password):")
-            lines.append("        return bcrypt.check_password_hash(self.password_hash, plain_password)")
+            lines.append("        try:")
+            lines.append("            return bcrypt.check_password_hash(self.password_hash, plain_password)")
+            lines.append("        except (TypeError, ValueError):")
+            lines.append("            return False")
             lines.append("")
             lines.append("    def has_permission(self, permission_code):")
             lines.append("        if any(role.name == \"admin\" for role in getattr(self, \"roles\", [])):")
@@ -303,7 +327,7 @@ def _render_models_file(metadata: MetaData) -> str:
             lines.append('            "created_at": self.created_at.isoformat() if self.created_at else None,')
             lines.append("        }")
             lines.append("        if include_roles:")
-            lines.append('            data["roles"] = [role.name for role in getattr(self, "roles", [])]')
+            lines.append('            data["roles"] = [role.name for role in getattr(self, \"roles\", [])]')
             lines.append("        return data")
 
         lines.append("")
@@ -345,14 +369,14 @@ def main() -> None:
 
     reflect_cmd = subparsers.add_parser(
         "reflect-models",
-        help="Reflect current database schema and regenerate app/database/models.py.",
+        help="Reflect current database schema and generate SQLAlchemy Base models.",
     )
     reflect_cmd.add_argument("--uri", help="SQLAlchemy URI, overrides env config.")
     reflect_cmd.add_argument("--env", default="development", help="App config env name.")
     reflect_cmd.add_argument(
         "--output",
         default=str(DEFAULT_MODELS_PATH),
-        help="Target file path for generated models.py.",
+        help="Target file path for generated models file.",
     )
 
     args = parser.parse_args()
