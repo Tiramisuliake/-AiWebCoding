@@ -9,13 +9,47 @@ from ..database.entity.models import Menu
 from ..database.repository import rbac_repository as repo
 
 
-def list_menu_tree(include_hidden: bool = True, include_disabled: bool = True) -> dict:
+def _collect_parent_ids(menu: Menu, menu_map: dict[int, Menu]) -> set[int]:
+    parent_ids: set[int] = set()
+    current = menu
+    while current.parent_id:
+        parent = menu_map.get(current.parent_id)
+        if parent is None:
+            break
+        parent_ids.add(parent.id)
+        current = parent
+    return parent_ids
+
+
+def _filter_menus_by_name_with_ancestors(menus: list[Menu], name: str) -> list[Menu]:
+    if not name:
+        return menus
+
+    keyword = name.lower()
+    menu_map = {menu.id: menu for menu in menus}
+    matched_ids = {menu.id for menu in menus if keyword in (menu.name or "").lower()}
+
+    allowed_ids = set(matched_ids)
+    for menu_id in matched_ids:
+        menu = menu_map.get(menu_id)
+        if menu:
+            allowed_ids.update(_collect_parent_ids(menu, menu_map))
+
+    return [menu for menu in menus if menu.id in allowed_ids]
+
+
+def list_menu_tree(
+    include_hidden: bool = True,
+    include_disabled: bool = True,
+    name: str = "",
+) -> dict:
     session = get_session()
     menus = repo.list_menus(
         session,
         include_disabled=include_disabled,
         include_hidden=include_hidden,
     )
+    menus = _filter_menus_by_name_with_ancestors(menus, name)
     return {"items": build_menu_tree(menus)}
 
 

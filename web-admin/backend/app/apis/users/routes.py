@@ -26,10 +26,23 @@ class UserListResource(Resource):
         page = max(request.args.get("page", 1, type=int), 1)
         per_page = min(max(request.args.get("per_page", 20, type=int), 1), 100)
         keyword = request.args.get("keyword", "", type=str).strip()
+        username = request.args.get("username", "", type=str).strip()
+        email = request.args.get("email", "", type=str).strip()
+        role = request.args.get("role", "", type=str).strip()
         is_active = parse_bool(request.args.get("is_active"), default=None)
 
         try:
-            return ok(list_users(page=page, per_page=per_page, keyword=keyword, is_active=is_active))
+            return ok(
+                list_users(
+                    page=page,
+                    per_page=per_page,
+                    keyword=keyword,
+                    is_active=is_active,
+                    username=username,
+                    email=email,
+                    role=role,
+                )
+            )
         except ServiceError as exc:
             return fail(exc.code, exc.msg, status=exc.status, data=exc.data)
 

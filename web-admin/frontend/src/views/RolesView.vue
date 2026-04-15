@@ -21,6 +21,13 @@ const loading = ref(false);
 const submitting = ref(false);
 const items = ref([]);
 const total = ref(0);
+const pagination = reactive({
+  page: 1,
+  perPage: 100
+});
+const searchForm = reactive({
+  name: ""
+});
 const permissionOptions = ref([]);
 const menuOptions = ref([]);
 
@@ -54,7 +61,11 @@ async function loadData() {
   loading.value = true;
   try {
     const [roleResponse, permissionResponse, menuResponse] = await Promise.all([
-      fetchRoles({ page: 1, per_page: 100 }),
+      fetchRoles({
+        page: pagination.page,
+        per_page: pagination.perPage,
+        name: searchForm.name || undefined
+      }),
       fetchPermissions(),
       fetchMenuTree()
     ]);
@@ -71,6 +82,8 @@ async function loadData() {
 
     items.value = roleResponse.data.items || [];
     total.value = roleResponse.data.total || 0;
+    pagination.page = roleResponse.data.page || pagination.page;
+    pagination.perPage = roleResponse.data.per_page || pagination.perPage;
     permissionOptions.value = permissionResponse.data.items || [];
     menuOptions.value = menuResponse.data.items || [];
   } catch (error) {
@@ -78,6 +91,22 @@ async function loadData() {
   } finally {
     loading.value = false;
   }
+}
+
+function onSearch() {
+  pagination.page = 1;
+  loadData();
+}
+
+function onReset() {
+  searchForm.name = "";
+  pagination.page = 1;
+  loadData();
+}
+
+function onPageChange(page) {
+  pagination.page = page;
+  loadData();
 }
 
 function resetRoleForm() {
@@ -247,7 +276,17 @@ onMounted(loadData);
     </header>
 
     <el-card class="table-card">
-      <el-table :data="items" :loading="loading" border>
+      <el-form class="search-bar" :inline="true">
+        <el-form-item :label="t('roles.searchRoleName')">
+          <el-input v-model="searchForm.name" clearable @keyup.enter="onSearch" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch">{{ t("common.search") }}</el-button>
+          <el-button @click="onReset">{{ t("common.reset") }}</el-button>
+        </el-form-item>
+      </el-form>
+
+      <el-table :data="items" :loading="loading" border :empty-text="t('common.noData')">
         <el-table-column prop="id" :label="t('users.id')" width="80" />
         <el-table-column prop="name" :label="t('roles.roleName')" />
         <el-table-column prop="description" :label="t('roles.description')" />
@@ -267,6 +306,16 @@ onMounted(loadData);
           </template>
         </el-table-column>
       </el-table>
+      <div class="pager">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :current-page="pagination.page"
+          :page-size="pagination.perPage"
+          :total="total"
+          @current-change="onPageChange"
+        />
+      </div>
       <div class="foot">{{ t("common.total") }}: {{ total }}</div>
     </el-card>
 
@@ -378,6 +427,19 @@ onMounted(loadData);
 .table-card {
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: var(--space-2);
+}
+
+.pager {
+  margin-top: var(--space-2);
+  display: flex;
+  justify-content: flex-end;
 }
 
 .foot {

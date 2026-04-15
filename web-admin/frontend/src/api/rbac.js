@@ -79,8 +79,8 @@ export async function assignRoleMenus(roleId, menuIds) {
   return data;
 }
 
-export async function fetchPermissions() {
-  const { data } = await http.get("/permissions");
+export async function fetchPermissions(params = {}) {
+  const { data } = await http.get("/permissions", { params });
   return data;
 }
 

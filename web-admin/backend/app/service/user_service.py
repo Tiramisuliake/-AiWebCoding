@@ -9,11 +9,25 @@ from ..database.conn import get_session
 from ..database.repository import rbac_repository as repo
 
 
-def list_users(page: int, per_page: int, keyword: str, is_active: bool | None) -> dict:
+def list_users(
+    page: int,
+    per_page: int,
+    keyword: str,
+    is_active: bool | None,
+    username: str = "",
+    email: str = "",
+    role: str = "",
+) -> dict:
     session = get_session()
     pagination = paginate_scalars(
         session,
-        repo.build_user_select(keyword=keyword, is_active=is_active),
+        repo.build_user_select(
+            keyword=keyword,
+            is_active=is_active,
+            username=username,
+            email=email,
+            role=role,
+        ),
         page=page,
         per_page=per_page,
     )

@@ -13,6 +13,9 @@ const submitting = ref(false);
 const items = ref([]);
 const dialogVisible = ref(false);
 const mode = ref("create");
+const searchForm = reactive({
+  name: ""
+});
 
 const formRef = ref();
 const form = reactive({
@@ -88,7 +91,9 @@ function openEdit(row) {
 async function loadData() {
   loading.value = true;
   try {
-    const response = await fetchMenuTree();
+    const response = await fetchMenuTree({
+      name: searchForm.name || undefined
+    });
     if (response.code !== 0) {
       throw new Error(response.msg || t("menus.loadFailed"));
     }
@@ -98,6 +103,15 @@ async function loadData() {
   } finally {
     loading.value = false;
   }
+}
+
+function onSearch() {
+  loadData();
+}
+
+function onReset() {
+  searchForm.name = "";
+  loadData();
 }
 
 async function submit() {
@@ -170,9 +184,20 @@ onMounted(loadData);
     </header>
 
     <el-card class="table-card">
+      <el-form class="search-bar" :inline="true">
+        <el-form-item :label="t('menus.searchName')">
+          <el-input v-model="searchForm.name" clearable @keyup.enter="onSearch" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch">{{ t("common.search") }}</el-button>
+          <el-button @click="onReset">{{ t("common.reset") }}</el-button>
+        </el-form-item>
+      </el-form>
+
       <el-table
         :data="items"
         :loading="loading"
+        :empty-text="t('common.noData')"
         border
         row-key="id"
         default-expand-all
@@ -287,5 +312,11 @@ onMounted(loadData);
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.24);
 }
-</style>
 
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: var(--space-2);
+}
+</style>

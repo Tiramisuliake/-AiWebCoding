@@ -7,6 +7,8 @@
       chinese: "中文",
       english: "英文",
       reload: "刷新",
+      search: "搜索",
+      reset: "重置",
       save: "保存",
       cancel: "取消",
       edit: "编辑",
@@ -25,6 +27,8 @@
       assign: "分配",
       success: "操作成功",
       confirm: "确认"
+      ,
+      noData: "暂无数据"
     },
     layout: {
       subtitle: "权限后台管理系统",
@@ -55,6 +59,9 @@
     },
     users: {
       title: "用户管理",
+      searchRole: "角色",
+      searchEmail: "邮箱",
+      searchUsername: "用户名",
       newUser: "新建用户",
       createUser: "创建用户",
       editUser: "编辑用户",
@@ -81,6 +88,7 @@
     },
     roles: {
       title: "角色管理",
+      searchRoleName: "角色名称",
       newRole: "新建角色",
       createRole: "创建角色",
       editRole: "编辑角色",
@@ -105,6 +113,9 @@
     },
     permissions: {
       title: "权限列表",
+      searchPermissionName: "权限名",
+      searchPermissionCode: "权限码",
+      searchDescription: "描述",
       permissionName: "权限名",
       code: "权限码",
       description: "描述",
@@ -134,6 +145,7 @@
     },
     menus: {
       title: "菜单管理",
+      searchName: "名称",
       newMenu: "新建菜单",
       newChild: "新建子菜单",
       createMenu: "创建菜单",
@@ -169,6 +181,8 @@
       chinese: "Chinese",
       english: "English",
       reload: "Reload",
+      search: "Search",
+      reset: "Reset",
       save: "Save",
       cancel: "Cancel",
       edit: "Edit",
@@ -186,7 +200,8 @@
       create: "Create",
       assign: "Assign",
       success: "Success",
-      confirm: "Confirm"
+      confirm: "Confirm",
+      noData: "No data"
     },
     layout: {
       subtitle: "RBAC admin system",
@@ -217,6 +232,9 @@
     },
     users: {
       title: "Users",
+      searchRole: "Role",
+      searchEmail: "Email",
+      searchUsername: "Username",
       newUser: "New User",
       createUser: "Create User",
       editUser: "Edit User",
@@ -243,6 +261,7 @@
     },
     roles: {
       title: "Roles",
+      searchRoleName: "Role Name",
       newRole: "New Role",
       createRole: "Create Role",
       editRole: "Edit Role",
@@ -267,6 +286,9 @@
     },
     permissions: {
       title: "Permissions",
+      searchPermissionName: "Permission Name",
+      searchPermissionCode: "Permission Code",
+      searchDescription: "Description",
       permissionName: "Permission Name",
       code: "Code",
       description: "Description",
@@ -296,6 +318,7 @@
     },
     menus: {
       title: "Menus",
+      searchName: "Name",
       newMenu: "New Menu",
       newChild: "New Child",
       createMenu: "Create Menu",

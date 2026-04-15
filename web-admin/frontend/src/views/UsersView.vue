@@ -20,6 +20,15 @@ const submitting = ref(false);
 const items = ref([]);
 const roleOptions = ref([]);
 const total = ref(0);
+const pagination = reactive({
+  page: 1,
+  perPage: 100
+});
+const searchForm = reactive({
+  role: "",
+  email: "",
+  username: ""
+});
 
 const userDialogVisible = ref(false);
 const userFormRef = ref();
@@ -67,7 +76,13 @@ async function loadData() {
   loading.value = true;
   try {
     const [userResponse, roleResponse] = await Promise.all([
-      fetchUsers({ page: 1, per_page: 100 }),
+      fetchUsers({
+        page: pagination.page,
+        per_page: pagination.perPage,
+        role: searchForm.role || undefined,
+        email: searchForm.email || undefined,
+        username: searchForm.username || undefined
+      }),
       fetchRoles({ page: 1, per_page: 100 })
     ]);
 
@@ -80,12 +95,32 @@ async function loadData() {
 
     items.value = userResponse.data.items || [];
     total.value = userResponse.data.total || 0;
+    pagination.page = userResponse.data.page || pagination.page;
+    pagination.perPage = userResponse.data.per_page || pagination.perPage;
     roleOptions.value = roleResponse.data.items || [];
   } catch (error) {
     ElMessage.error(normalizeError(error, "users.loadFailed"));
   } finally {
     loading.value = false;
   }
+}
+
+function onSearch() {
+  pagination.page = 1;
+  loadData();
+}
+
+function onReset() {
+  searchForm.role = "";
+  searchForm.email = "";
+  searchForm.username = "";
+  pagination.page = 1;
+  loadData();
+}
+
+function onPageChange(page) {
+  pagination.page = page;
+  loadData();
 }
 
 function resetUserForm() {
@@ -242,7 +277,23 @@ onMounted(loadData);
     </header>
 
     <el-card class="table-card">
-      <el-table :data="items" :loading="loading" border>
+      <el-form class="search-bar" :inline="true">
+        <el-form-item :label="t('users.searchRole')">
+          <el-input v-model="searchForm.role" clearable @keyup.enter="onSearch" />
+        </el-form-item>
+        <el-form-item :label="t('users.searchEmail')">
+          <el-input v-model="searchForm.email" clearable @keyup.enter="onSearch" />
+        </el-form-item>
+        <el-form-item :label="t('users.searchUsername')">
+          <el-input v-model="searchForm.username" clearable @keyup.enter="onSearch" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="onSearch">{{ t("common.search") }}</el-button>
+          <el-button @click="onReset">{{ t("common.reset") }}</el-button>
+        </el-form-item>
+      </el-form>
+
+      <el-table :data="items" :loading="loading" border :empty-text="t('common.noData')">
         <el-table-column prop="id" :label="t('users.id')" width="80" />
         <el-table-column prop="username" :label="t('users.username')" />
         <el-table-column prop="email" :label="t('users.email')" />
@@ -268,6 +319,16 @@ onMounted(loadData);
           </template>
         </el-table-column>
       </el-table>
+      <div class="pager">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :current-page="pagination.page"
+          :page-size="pagination.perPage"
+          :total="total"
+          @current-change="onPageChange"
+        />
+      </div>
       <div class="foot">{{ t("common.total") }}: {{ total }}</div>
     </el-card>
 
@@ -361,6 +422,19 @@ onMounted(loadData);
 .table-card {
   border-radius: 12px;
   border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: var(--space-2);
+}
+
+.pager {
+  margin-top: var(--space-2);
+  display: flex;
+  justify-content: flex-end;
 }
 
 .foot {

@@ -7,8 +7,27 @@ from sqlalchemy.sql import Select
 from ..entity.models import Menu, Permission, Role, User
 
 
-def build_user_select(keyword: str = "", is_active: bool | None = None) -> Select:
+def build_user_select(
+    keyword: str = "",
+    is_active: bool | None = None,
+    username: str = "",
+    email: str = "",
+    role: str = "",
+) -> Select:
     statement = select(User)
+    joined_roles = False
+
+    if role:
+        joined_roles = True
+        statement = statement.outerjoin(User.roles)
+        statement = statement.where(Role.name.like(f"%{role}%"))
+
+    if username:
+        statement = statement.where(User.username.like(f"%{username}%"))
+
+    if email:
+        statement = statement.where(User.email.like(f"%{email}%"))
+
     if keyword:
         like_keyword = f"%{keyword}%"
         statement = statement.where(
@@ -16,6 +35,10 @@ def build_user_select(keyword: str = "", is_active: bool | None = None) -> Selec
         )
     if is_active is not None:
         statement = statement.where(User.is_active.is_(is_active))
+
+    if joined_roles:
+        statement = statement.distinct()
+
     return statement.order_by(User.id.asc())
 
 
@@ -59,8 +82,22 @@ def get_other_role_by_name(session: Session, role_id: int, name: str) -> Role | 
     return session.execute(select(Role).where(Role.name == name, Role.id != role_id)).scalar_one_or_none()
 
 
-def build_role_select() -> Select:
-    return select(Role).order_by(Role.id.asc())
+def build_role_select(name: str = "") -> Select:
+    statement = select(Role)
+    if name:
+        statement = statement.where(Role.name.like(f"%{name}%"))
+    return statement.order_by(Role.id.asc())
+
+
+def build_permission_select(name: str = "", code: str = "", description: str = "") -> Select:
+    statement = select(Permission)
+    if name:
+        statement = statement.where(Permission.name.like(f"%{name}%"))
+    if code:
+        statement = statement.where(Permission.code.like(f"%{code}%"))
+    if description:
+        statement = statement.where(Permission.description.like(f"%{description}%"))
+    return statement.order_by(Permission.id.asc())
 
 
 def list_permissions(session: Session) -> list[Permission]:
@@ -110,6 +147,7 @@ def menu_has_children(session: Session, menu_id: int) -> bool:
 
 __all__ = [
     "build_role_select",
+    "build_permission_select",
     "build_user_select",
     "get_menu_by_id",
     "get_menu_by_route_path",

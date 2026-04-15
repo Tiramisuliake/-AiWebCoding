@@ -23,9 +23,16 @@ class MenuListResource(Resource):
     def get(self):
         include_hidden = parse_bool(request.args.get("include_hidden"), default=True)
         include_disabled = parse_bool(request.args.get("include_disabled"), default=True)
+        name = request.args.get("name", "", type=str).strip()
 
         try:
-            return ok(list_menu_tree(include_hidden=include_hidden, include_disabled=include_disabled))
+            return ok(
+                list_menu_tree(
+                    include_hidden=include_hidden,
+                    include_disabled=include_disabled,
+                    name=name,
+                )
+            )
         except ServiceError as exc:
             return fail(exc.code, exc.msg, status=exc.status, data=exc.data)
 
