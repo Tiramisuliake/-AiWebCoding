@@ -2,25 +2,18 @@
 
 from collections import defaultdict
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from ..models import Menu
-
-
-def _sort_key(menu: Menu):
-    return (menu.sort, menu.id)
+from .serializers import menu_to_dict
 
 
 def _is_admin(user) -> bool:
     return any(role.name == "admin" for role in getattr(user, "roles", []))
 
 
-def _is_enabled_visible(menu: Menu) -> bool:
+def _is_enabled_visible(menu) -> bool:
     return bool(menu.is_enabled and menu.is_visible)
 
 
-def _has_enabled_visible_ancestors(menu: Menu, menu_map: dict[int, Menu]) -> bool:
+def _has_enabled_visible_ancestors(menu, menu_map: dict[int, object]) -> bool:
     current = menu
     while current.parent_id:
         parent = menu_map.get(current.parent_id)
@@ -32,7 +25,7 @@ def _has_enabled_visible_ancestors(menu: Menu, menu_map: dict[int, Menu]) -> boo
     return True
 
 
-def _collect_parent_ids(menu: Menu, menu_map: dict[int, Menu]) -> set[int]:
+def _collect_parent_ids(menu, menu_map: dict[int, object]) -> set[int]:
     parent_ids: set[int] = set()
     current = menu
     while current.parent_id:
@@ -44,11 +37,11 @@ def _collect_parent_ids(menu: Menu, menu_map: dict[int, Menu]) -> set[int]:
     return parent_ids
 
 
-def build_menu_tree(menus: list[Menu]) -> list[dict]:
+def build_menu_tree(menus: list[object]) -> list[dict]:
     if not menus:
         return []
 
-    nodes = {item.id: {**item.to_dict(), "children": []} for item in menus}
+    nodes = {item.id: {**menu_to_dict(item), "children": []} for item in menus}
     roots = []
     children_map: dict[int, list[dict]] = defaultdict(list)
 
@@ -67,21 +60,7 @@ def build_menu_tree(menus: list[Menu]) -> list[dict]:
     return roots
 
 
-def get_all_menu_tree(
-    session: Session, include_disabled: bool = True, include_hidden: bool = True
-) -> list[dict]:
-    statement = select(Menu)
-    if not include_disabled:
-        statement = statement.where(Menu.is_enabled.is_(True))
-    if not include_hidden:
-        statement = statement.where(Menu.is_visible.is_(True))
-
-    menus = session.execute(statement.order_by(Menu.sort.asc(), Menu.id.asc())).scalars().all()
-    return build_menu_tree(menus)
-
-
-def get_user_menu_tree(session: Session, user) -> list[dict]:
-    all_menus = session.execute(select(Menu).order_by(Menu.sort.asc(), Menu.id.asc())).scalars().all()
+def filter_user_menu_tree(user, all_menus: list[object]) -> list[dict]:
     if not all_menus:
         return []
 
@@ -116,4 +95,4 @@ def get_user_menu_tree(session: Session, user) -> list[dict]:
     return build_menu_tree(final_menus)
 
 
-__all__ = ["build_menu_tree", "get_all_menu_tree", "get_user_menu_tree"]
+__all__ = ["build_menu_tree", "filter_user_menu_tree"]

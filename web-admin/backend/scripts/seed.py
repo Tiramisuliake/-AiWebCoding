@@ -8,8 +8,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app import create_app
-from app.database import create_all, get_session
-from app.rbac.services import seed_rbac
+from app.database.conn import create_all
+from app.service import seed_rbac
 from app.utils import logger
 
 
@@ -42,9 +42,7 @@ def main():
     with app.app_context():
         if args.create_tables:
             create_all()
-        session = get_session()
         result = seed_rbac(
-            session=session,
             admin_username=args.username,
             admin_email=args.email,
             admin_password=password,

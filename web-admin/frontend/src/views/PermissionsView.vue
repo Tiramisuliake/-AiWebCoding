@@ -10,6 +10,16 @@ const loading = ref(false);
 const items = ref([]);
 const total = ref(0);
 
+function getPermissionDescription(item) {
+  const codeKey = String(item?.code || "").replaceAll(":", "_");
+  if (!codeKey) {
+    return item?.description || "";
+  }
+  const i18nKey = `permissions.codeDescriptions.${codeKey}`;
+  const localized = t(i18nKey);
+  return localized === i18nKey ? item?.description || "" : localized;
+}
+
 async function loadData() {
   loading.value = true;
   try {
@@ -41,7 +51,11 @@ onMounted(loadData);
         <el-table-column prop="id" :label="t('users.id')" width="80" />
         <el-table-column prop="name" :label="t('permissions.permissionName')" />
         <el-table-column prop="code" :label="t('permissions.code')" />
-        <el-table-column prop="description" :label="t('permissions.description')" />
+        <el-table-column :label="t('permissions.description')">
+          <template #default="{ row }">
+            {{ getPermissionDescription(row) }}
+          </template>
+        </el-table-column>
       </el-table>
       <div class="foot">{{ t("common.total") }}: {{ total }}</div>
     </el-card>

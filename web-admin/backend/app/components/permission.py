@@ -2,9 +2,7 @@
 
 from flask_jwt_extended import get_jwt_identity
 
-from .components.response import fail
-from .database.session import get_session
-from .rbac.models import User
+from .response import fail
 
 
 def require_permission(permission_code):
@@ -20,14 +18,15 @@ def require_permission(permission_code):
             except (TypeError, ValueError):
                 return fail(2001, "unauthorized", status=401)
 
-            session = get_session()
-            user = session.get(User, user_pk)
-            if user is None:
-                return fail(2001, "unauthorized", status=401)
-            if not user.has_permission(permission_code):
+            from ..service.authz_service import user_has_permission
+
+            if not user_has_permission(user_pk, permission_code):
                 return fail(2002, "permission denied", status=403)
             return fn(*args, **kwargs)
 
         return wrapped
 
     return decorator
+
+
+__all__ = ["require_permission"]

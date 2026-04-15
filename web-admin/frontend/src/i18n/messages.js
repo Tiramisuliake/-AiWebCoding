@@ -108,7 +108,29 @@
       permissionName: "权限名",
       code: "权限码",
       description: "描述",
-      loadFailed: "加载权限失败"
+      loadFailed: "加载权限失败",
+      codeDescriptions: {
+        user_list: "用户列表查看权限",
+        user_read: "用户详情查看权限",
+        user_create: "用户创建权限",
+        user_update: "用户编辑权限",
+        user_delete: "用户删除权限",
+        user_assign_role: "用户角色分配权限",
+        role_list: "角色列表查看权限",
+        role_read: "角色详情查看权限",
+        role_create: "角色创建权限",
+        role_update: "角色编辑权限",
+        role_delete: "角色删除权限",
+        role_assign_permission: "角色权限分配权限",
+        permission_list: "权限列表查看权限",
+        permission_read: "权限详情查看权限",
+        menu_list: "菜单列表查看权限",
+        menu_read: "菜单详情查看权限",
+        menu_create: "菜单创建权限",
+        menu_update: "菜单编辑权限",
+        menu_delete: "菜单删除权限",
+        role_assign_menu: "角色菜单分配权限"
+      }
     },
     menus: {
       title: "菜单管理",
@@ -248,7 +270,29 @@
       permissionName: "Permission Name",
       code: "Code",
       description: "Description",
-      loadFailed: "Failed to load permissions"
+      loadFailed: "Failed to load permissions",
+      codeDescriptions: {
+        user_list: "View user list permission",
+        user_read: "View user details permission",
+        user_create: "Create user permission",
+        user_update: "Update user permission",
+        user_delete: "Delete user permission",
+        user_assign_role: "Assign roles to user permission",
+        role_list: "View role list permission",
+        role_read: "View role details permission",
+        role_create: "Create role permission",
+        role_update: "Update role permission",
+        role_delete: "Delete role permission",
+        role_assign_permission: "Assign permissions to role permission",
+        permission_list: "View permission list permission",
+        permission_read: "View permission details permission",
+        menu_list: "View menu list permission",
+        menu_read: "View menu details permission",
+        menu_create: "Create menu permission",
+        menu_update: "Update menu permission",
+        menu_delete: "Delete menu permission",
+        role_assign_menu: "Assign menus to role permission"
+      }
     },
     menus: {
       title: "Menus",

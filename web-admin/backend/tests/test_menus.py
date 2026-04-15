@@ -1,7 +1,7 @@
-﻿from sqlalchemy import select
-
-from app.database import get_session
-from app.rbac.models import Menu, Role, User
+﻿from app.components.security import hash_password
+from app.database.conn import get_session
+from app.database.entity.models import Menu, Role, User
+from app.database.repository.rbac_repository import get_menu_by_route_path
 
 
 def _login(client, username, password):
@@ -64,10 +64,7 @@ def test_role_assign_menu_and_my_tree_visibility(client, auth_header, app):
         session.add(viewer_role)
         session.flush()
 
-        # Assign one second-level menu, API should auto include its parent in /my-tree.
-        permissions_menu = session.execute(
-            select(Menu).where(Menu.route_path == "/permissions")
-        ).scalar_one_or_none()
+        permissions_menu = get_menu_by_route_path(session, "/permissions")
         assert permissions_menu is not None
         permissions_menu_id = permissions_menu.id
         viewer_role.menus = [permissions_menu, hidden_menu, disabled_menu]
@@ -75,9 +72,9 @@ def test_role_assign_menu_and_my_tree_visibility(client, auth_header, app):
         viewer_user = User(
             username="viewer",
             email="viewer@example.com",
+            password_hash=hash_password("password123"),
             is_active=True,
         )
-        viewer_user.set_password("password123")
         viewer_user.roles.append(viewer_role)
         session.add(viewer_user)
         session.commit()

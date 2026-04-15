@@ -9,7 +9,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from .base import Base
+from ..entity import Base
 
 _ENGINE: Engine | None = None
 _ENGINE_URI: str | None = None
@@ -89,8 +89,7 @@ def remove_session() -> None:
 
 
 def create_all() -> None:
-    from .models import TokenBlocklist  # noqa: F401
-    from ..rbac.models import Menu, Permission, Role, User  # noqa: F401
+    from ..entity import models as _models  # noqa: F401
 
     Base.metadata.create_all(bind=get_engine())
 
@@ -119,4 +118,3 @@ __all__ = [
     "remove_session",
     "session_scope",
 ]
-

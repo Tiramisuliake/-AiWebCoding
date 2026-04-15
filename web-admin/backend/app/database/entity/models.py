@@ -5,8 +5,7 @@ from datetime import datetime
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from ..conf.extensions import bcrypt
-from ..database.base import Base
+from .base import Base
 
 user_roles = Table(
     "user_roles",
@@ -47,14 +46,6 @@ class Permission(Base):
         "Role", secondary=role_permissions, back_populates="permissions"
     )
 
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "name": self.name,
-            "code": self.code,
-            "description": self.description,
-        }
-
 
 class Role(Base):
     __tablename__ = "roles"
@@ -69,18 +60,6 @@ class Role(Base):
         "Permission", secondary=role_permissions, back_populates="roles"
     )
     menus: Mapped[list[Menu]] = relationship("Menu", secondary=role_menus, back_populates="roles")
-
-    def to_dict(self, include_permissions: bool = False) -> dict:
-        data = {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "permission_count": len(self.permissions),
-        }
-        if include_permissions:
-            data["permissions"] = [item.to_dict() for item in self.permissions]
-        return data
 
 
 class User(Base):
@@ -97,35 +76,6 @@ class User(Base):
     )
 
     roles: Mapped[list[Role]] = relationship("Role", secondary=user_roles, back_populates="users")
-
-    def set_password(self, plain_password: str) -> None:
-        self.password_hash = bcrypt.generate_password_hash(plain_password).decode("utf-8")
-
-    def check_password(self, plain_password: str) -> bool:
-        try:
-            return bcrypt.check_password_hash(self.password_hash, plain_password)
-        except (TypeError, ValueError):
-            return False
-
-    def has_permission(self, permission_code: str) -> bool:
-        if any(role.name == "admin" for role in self.roles):
-            return True
-        permission_codes = {
-            permission.code for role in self.roles for permission in role.permissions
-        }
-        return permission_code in permission_codes
-
-    def to_dict(self, include_roles: bool = True) -> dict:
-        data = {
-            "id": self.id,
-            "username": self.username,
-            "email": self.email,
-            "is_active": self.is_active,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-        }
-        if include_roles:
-            data["roles"] = [role.name for role in self.roles]
-        return data
 
 
 class Menu(Base):
@@ -153,26 +103,20 @@ class Menu(Base):
     children: Mapped[list[Menu]] = relationship("Menu", back_populates="parent")
     roles: Mapped[list[Role]] = relationship("Role", secondary=role_menus, back_populates="menus")
 
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "name": self.name,
-            "parent_id": self.parent_id,
-            "route_path": self.route_path,
-            "icon": self.icon,
-            "sort": self.sort,
-            "is_visible": self.is_visible,
-            "is_enabled": self.is_enabled,
-            "permission_code": self.permission_code,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
+
+class TokenBlocklist(Base):
+    __tablename__ = "token_blocklist"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    jti: Mapped[str] = mapped_column(String(36), nullable=False, unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
 
 __all__ = [
     "Menu",
     "Permission",
     "Role",
+    "TokenBlocklist",
     "User",
     "role_menus",
     "role_permissions",

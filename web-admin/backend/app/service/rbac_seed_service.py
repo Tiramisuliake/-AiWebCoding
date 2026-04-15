@@ -1,14 +1,16 @@
 ﻿from __future__ import annotations
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from ..constants import DEFAULT_PERMISSION_CODES
-from ..models import Menu, Permission, Role, User
+from ..components.security import hash_password
+from ..const.permissions import DEFAULT_PERMISSION_CODES
+from ..database.conn import get_session
+from ..database.entity.models import Menu, Permission, Role, User
+from ..database.repository import rbac_repository as repo
 
 
-def _seed_default_menus(session: Session) -> tuple[list[Menu], int]:
-    existing = session.execute(select(Menu).order_by(Menu.id.asc())).scalars().all()
+def _seed_default_menus(session) -> tuple[list[Menu], int]:
+    existing = repo.list_all_menus_ordered(session)
     if existing:
         return existing, 0
 
@@ -74,16 +76,17 @@ def _seed_default_menus(session: Session) -> tuple[list[Menu], int]:
     session.add_all([roles, permissions, menu_manage])
     session.flush()
 
-    menus = session.execute(select(Menu).order_by(Menu.id.asc())).scalars().all()
-    return menus, 6
+    return repo.list_all_menus_ordered(session), 6
 
 
-def seed_rbac(
-    session: Session, admin_username: str, admin_email: str, admin_password: str
-) -> dict[str, int]:
+def seed_rbac(admin_username: str, admin_email: str, admin_password: str) -> dict:
+    session = get_session()
+
     created_permissions = 0
     for code in DEFAULT_PERMISSION_CODES:
-        permission = session.execute(select(Permission).where(Permission.code == code)).scalar_one_or_none()
+        permission = session.execute(
+            select(Permission).where(Permission.code == code)
+        ).scalar_one_or_none()
         if permission is None:
             permission = Permission(
                 name=code.replace(":", " ").title(),
@@ -95,9 +98,10 @@ def seed_rbac(
 
     session.flush()
 
-    all_permissions = session.execute(select(Permission).order_by(Permission.id.asc())).scalars().all()
+    all_permissions = repo.list_permissions(session)
     all_menus, created_menus = _seed_default_menus(session)
-    admin_role = session.execute(select(Role).where(Role.name == "admin")).scalar_one_or_none()
+
+    admin_role = repo.get_role_by_name(session, "admin")
     if admin_role is None:
         admin_role = Role(name="admin", description="System administrator")
         session.add(admin_role)
@@ -105,28 +109,27 @@ def seed_rbac(
     admin_role.permissions = all_permissions
     admin_role.menus = all_menus
 
-    admin_user = session.execute(
-        select(User).where(User.username == admin_username)
-    ).scalar_one_or_none()
+    admin_user = repo.get_user_by_username(session, admin_username)
     if admin_user is None:
         admin_user = User(
             username=admin_username,
             email=admin_email,
+            password_hash=hash_password(admin_password),
             is_active=True,
         )
-        admin_user.set_password(admin_password)
         session.add(admin_user)
         session.flush()
     else:
         if admin_user.email != admin_email:
             admin_user.email = admin_email
         if admin_password:
-            admin_user.set_password(admin_password)
+            admin_user.password_hash = hash_password(admin_password)
 
     if admin_role not in admin_user.roles:
         admin_user.roles.append(admin_role)
 
     session.commit()
+
     return {
         "permissions_created": created_permissions,
         "permissions_total": len(all_permissions),

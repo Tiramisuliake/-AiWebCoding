@@ -33,7 +33,7 @@ from app import create_app
 from app.database import create_all
 from app.utils import logger
 
-DEFAULT_MODELS_PATH = PROJECT_ROOT / "app" / "rbac" / "models_reflected.py"
+DEFAULT_MODELS_PATH = PROJECT_ROOT / "app" / "database" / "entity" / "models_reflected.py"
 
 
 def _quote_mysql(name: str) -> str:
@@ -94,8 +94,8 @@ def init_db_from_orm(uri: str, env: str) -> None:
     overrides = {"SQLALCHEMY_DATABASE_URI": uri}
     app = create_app(config_name=env, config_overrides=overrides)
     with app.app_context():
-        import app.database.models  # noqa: F401
-        import app.rbac.models  # noqa: F401
+        import app.database.entity.models  # noqa: F401
+        import app.database.entity.models  # noqa: F401
 
         create_all()
 
@@ -245,8 +245,8 @@ def _render_models_file(metadata: MetaData) -> str:
         ")",
         "from sqlalchemy.orm import relationship",
         "",
-        "from ..conf.extensions import bcrypt",
-        "from ..database.base import Base",
+        "from ...conf.extensions import bcrypt",
+        "from .base import Base",
         "",
     ]
 
@@ -401,3 +401,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+

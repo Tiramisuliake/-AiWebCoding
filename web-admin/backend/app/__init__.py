@@ -2,14 +2,13 @@
 
 from flask import Flask
 from flask_cors import CORS
-from sqlalchemy import select
 
 from .apis import api_blueprint
 from .components.response import fail, ok
 from .conf.config import CONFIG_MAP, apply_env_config
 from .conf.extensions import bcrypt, init_celery, jwt
-from .database.models import TokenBlocklist
-from .database.session import get_session, init_engine, remove_session
+from .database.conn import init_engine, remove_session
+from .service.auth_service import is_token_revoked
 
 
 def create_app(config_name=None, config_overrides=None):
@@ -30,21 +29,9 @@ def create_app(config_name=None, config_overrides=None):
     CORS(app, origins=app.config["CORS_ORIGINS"].split(","))
     init_celery(app)
 
-    # Register ORM entities for metadata and relationship mapper initialization.
-    from .rbac import models as _rbac_models  # noqa: F401
-
     @jwt.token_in_blocklist_loader
-    def is_token_revoked(_jwt_header, jwt_payload):
-        jti = jwt_payload.get("jti")
-        if not jti:
-            return True
-
-        session = get_session()
-        return (
-            session.execute(select(TokenBlocklist.id).where(TokenBlocklist.jti == jti))
-            .scalar_one_or_none()
-            is not None
-        )
+    def on_token_in_blocklist(_jwt_header, jwt_payload):
+        return is_token_revoked(jwt_payload.get("jti"))
 
     @jwt.unauthorized_loader
     def on_missing_token(_err):
@@ -80,4 +67,3 @@ def create_app(config_name=None, config_overrides=None):
 
     app.register_blueprint(api_blueprint)
     return app
-

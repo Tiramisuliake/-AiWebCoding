@@ -1,14 +1,13 @@
 ﻿import pytest
 
 from app import create_app
-from app.database import create_all, drop_all, get_session, remove_session
-from app.rbac.services import seed_rbac
+from app.database.conn import create_all, drop_all, remove_session
+from app.service import seed_rbac
 
 
-def _seed_base_data(session):
+def _seed_base_data():
     seed_value = "password123"
     seed_rbac(
-        session=session,
         admin_username="admin",
         admin_email="admin@example.com",
         admin_password=seed_value,
@@ -30,7 +29,7 @@ def app():
 
     with app.app_context():
         create_all()
-        _seed_base_data(get_session())
+        _seed_base_data()
         yield app
         remove_session()
         drop_all()
