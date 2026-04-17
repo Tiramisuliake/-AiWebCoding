@@ -1,5 +1,5 @@
-<script setup>
-import { onMounted, reactive, ref } from "vue";
+﻿<script setup>
+import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 
 import { useI18n } from "../composables/useI18n";
@@ -25,10 +25,11 @@ const pagination = reactive({
   perPage: 100
 });
 const searchForm = reactive({
-  role: "",
-  email: "",
-  username: ""
+  role: [],
+  email: [],
+  username: []
 });
+const MAX_SEARCH_ITEMS = 5;
 
 const userDialogVisible = ref(false);
 const userFormRef = ref();
@@ -72,6 +73,37 @@ function normalizeError(error, fallbackKey) {
   return error.response?.data?.msg || error.message || t(fallbackKey);
 }
 
+function uniqueStrings(values) {
+  return [...new Set((values || []).map((item) => String(item || "").trim()).filter(Boolean))];
+}
+
+function encodeSearchTerms(values) {
+  const uniqueValues = uniqueStrings(values);
+  return uniqueValues.length ? uniqueValues.join(",") : undefined;
+}
+
+function enforceMaxSearchItems(field, values) {
+  const uniqueValues = uniqueStrings(values);
+  if (uniqueValues.length <= MAX_SEARCH_ITEMS) {
+    searchForm[field] = uniqueValues;
+    return;
+  }
+  searchForm[field] = uniqueValues.slice(0, MAX_SEARCH_ITEMS);
+  ElMessage.warning(t("common.maxSearchItems", { count: MAX_SEARCH_ITEMS }));
+}
+
+const roleCandidates = computed(() => {
+  return uniqueStrings(roleOptions.value.map((item) => item.name));
+});
+
+const emailCandidates = computed(() => {
+  return uniqueStrings(items.value.map((item) => item.email));
+});
+
+const usernameCandidates = computed(() => {
+  return uniqueStrings(items.value.map((item) => item.username));
+});
+
 async function loadData() {
   loading.value = true;
   try {
@@ -79,9 +111,9 @@ async function loadData() {
       fetchUsers({
         page: pagination.page,
         per_page: pagination.perPage,
-        role: searchForm.role || undefined,
-        email: searchForm.email || undefined,
-        username: searchForm.username || undefined
+        role: encodeSearchTerms(searchForm.role),
+        email: encodeSearchTerms(searchForm.email),
+        username: encodeSearchTerms(searchForm.username)
       }),
       fetchRoles({ page: 1, per_page: 100 })
     ]);
@@ -111,9 +143,9 @@ function onSearch() {
 }
 
 function onReset() {
-  searchForm.role = "";
-  searchForm.email = "";
-  searchForm.username = "";
+  searchForm.role = [];
+  searchForm.email = [];
+  searchForm.username = [];
   pagination.page = 1;
   loadData();
 }
@@ -277,21 +309,71 @@ onMounted(loadData);
     </header>
 
     <el-card class="table-card">
-      <el-form class="search-bar" :inline="true">
-        <el-form-item :label="t('users.searchRole')">
-          <el-input v-model="searchForm.role" clearable @keyup.enter="onSearch" />
-        </el-form-item>
-        <el-form-item :label="t('users.searchEmail')">
-          <el-input v-model="searchForm.email" clearable @keyup.enter="onSearch" />
-        </el-form-item>
-        <el-form-item :label="t('users.searchUsername')">
-          <el-input v-model="searchForm.username" clearable @keyup.enter="onSearch" />
-        </el-form-item>
-        <el-form-item>
+      <div class="search-toolbar" @keyup.enter="onSearch">
+        <el-form class="search-fields" :inline="true">
+          <el-form-item :label="t('users.searchRole')">
+            <el-select
+              v-model="searchForm.role"
+              multiple
+              filterable
+              allow-create
+              default-first-option
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              style="width: 240px"
+              :no-match-text="t('common.noData')"
+              :no-data-text="t('common.noData')"
+              @change="(values) => enforceMaxSearchItems('role', values)"
+              @keyup.enter="onSearch"
+            >
+              <el-option v-for="item in roleCandidates" :key="item" :label="item" :value="item" />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="t('users.searchEmail')">
+            <el-select
+              v-model="searchForm.email"
+              multiple
+              filterable
+              allow-create
+              default-first-option
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              style="width: 240px"
+              :no-match-text="t('common.noData')"
+              :no-data-text="t('common.noData')"
+              @change="(values) => enforceMaxSearchItems('email', values)"
+              @keyup.enter="onSearch"
+            >
+              <el-option v-for="item in emailCandidates" :key="item" :label="item" :value="item" />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="t('users.searchUsername')">
+            <el-select
+              v-model="searchForm.username"
+              multiple
+              filterable
+              allow-create
+              default-first-option
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              style="width: 240px"
+              :no-match-text="t('common.noData')"
+              :no-data-text="t('common.noData')"
+              @change="(values) => enforceMaxSearchItems('username', values)"
+              @keyup.enter="onSearch"
+            >
+              <el-option v-for="item in usernameCandidates" :key="item" :label="item" :value="item" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <div class="search-actions">
           <el-button type="primary" @click="onSearch">{{ t("common.search") }}</el-button>
           <el-button @click="onReset">{{ t("common.reset") }}</el-button>
-        </el-form-item>
-      </el-form>
+        </div>
+      </div>
 
       <el-table :data="items" :loading="loading" border :empty-text="t('common.noData')">
         <el-table-column prop="id" :label="t('users.id')" width="80" />
@@ -424,11 +506,25 @@ onMounted(loadData);
   border: 1px solid rgba(148, 163, 184, 0.24);
 }
 
-.search-bar {
+.search-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 12px;
+  margin-bottom: var(--space-2);
+}
+
+.search-fields {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 12px;
-  margin-bottom: var(--space-2);
+}
+
+.search-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  white-space: nowrap;
 }
 
 .pager {
@@ -447,5 +543,14 @@ onMounted(loadData);
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .search-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .search-actions {
+    justify-content: flex-start;
+  }
 }
 </style>
+

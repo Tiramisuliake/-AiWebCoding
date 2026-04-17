@@ -28,7 +28,8 @@
       success: "操作成功",
       confirm: "确认"
       ,
-      noData: "暂无数据"
+      noData: "暂无数据",
+      maxSearchItems: "最多支持选择 {count} 个搜索条件"
     },
     layout: {
       subtitle: "权限后台管理系统",
@@ -201,7 +202,8 @@
       assign: "Assign",
       success: "Success",
       confirm: "Confirm",
-      noData: "No data"
+      noData: "No data",
+      maxSearchItems: "You can select up to {count} search conditions"
     },
     layout: {
       subtitle: "RBAC admin system",

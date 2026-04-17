@@ -21,13 +21,17 @@ def _collect_parent_ids(menu: Menu, menu_map: dict[int, Menu]) -> set[int]:
     return parent_ids
 
 
-def _filter_menus_by_name_with_ancestors(menus: list[Menu], name: str) -> list[Menu]:
-    if not name:
+def _filter_menus_by_name_with_ancestors(menus: list[Menu], name_terms: list[str] | None) -> list[Menu]:
+    name_terms = [term.lower() for term in (name_terms or []) if term]
+    if not name_terms:
         return menus
 
-    keyword = name.lower()
     menu_map = {menu.id: menu for menu in menus}
-    matched_ids = {menu.id for menu in menus if keyword in (menu.name or "").lower()}
+    matched_ids = {
+        menu.id
+        for menu in menus
+        if any(term in (menu.name or "").lower() for term in name_terms)
+    }
 
     allowed_ids = set(matched_ids)
     for menu_id in matched_ids:
@@ -41,7 +45,7 @@ def _filter_menus_by_name_with_ancestors(menus: list[Menu], name: str) -> list[M
 def list_menu_tree(
     include_hidden: bool = True,
     include_disabled: bool = True,
-    name: str = "",
+    name_terms: list[str] | None = None,
 ) -> dict:
     session = get_session()
     menus = repo.list_menus(
@@ -49,7 +53,7 @@ def list_menu_tree(
         include_disabled=include_disabled,
         include_hidden=include_hidden,
     )
-    menus = _filter_menus_by_name_with_ancestors(menus, name)
+    menus = _filter_menus_by_name_with_ancestors(menus, name_terms)
     return {"items": build_menu_tree(menus)}
 
 

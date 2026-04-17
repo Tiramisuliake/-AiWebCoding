@@ -1,5 +1,5 @@
-<script setup>
-import { onMounted, reactive, ref } from "vue";
+﻿<script setup>
+import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 
 import { useI18n } from "../composables/useI18n";
@@ -26,8 +26,9 @@ const pagination = reactive({
   perPage: 100
 });
 const searchForm = reactive({
-  name: ""
+  name: []
 });
+const MAX_SEARCH_ITEMS = 5;
 const permissionOptions = ref([]);
 const menuOptions = ref([]);
 
@@ -57,6 +58,29 @@ function normalizeError(error, fallbackKey) {
   return error.response?.data?.msg || error.message || t(fallbackKey);
 }
 
+function uniqueStrings(values) {
+  return [...new Set((values || []).map((item) => String(item || "").trim()).filter(Boolean))];
+}
+
+function encodeSearchTerms(values) {
+  const uniqueValues = uniqueStrings(values);
+  return uniqueValues.length ? uniqueValues.join(",") : undefined;
+}
+
+function enforceMaxSearchItems(field, values) {
+  const uniqueValues = uniqueStrings(values);
+  if (uniqueValues.length <= MAX_SEARCH_ITEMS) {
+    searchForm[field] = uniqueValues;
+    return;
+  }
+  searchForm[field] = uniqueValues.slice(0, MAX_SEARCH_ITEMS);
+  ElMessage.warning(t("common.maxSearchItems", { count: MAX_SEARCH_ITEMS }));
+}
+
+const roleNameCandidates = computed(() => {
+  return uniqueStrings(items.value.map((item) => item.name));
+});
+
 async function loadData() {
   loading.value = true;
   try {
@@ -64,7 +88,7 @@ async function loadData() {
       fetchRoles({
         page: pagination.page,
         per_page: pagination.perPage,
-        name: searchForm.name || undefined
+        name: encodeSearchTerms(searchForm.name)
       }),
       fetchPermissions(),
       fetchMenuTree()
@@ -99,7 +123,7 @@ function onSearch() {
 }
 
 function onReset() {
-  searchForm.name = "";
+  searchForm.name = [];
   pagination.page = 1;
   loadData();
 }
@@ -276,15 +300,33 @@ onMounted(loadData);
     </header>
 
     <el-card class="table-card">
-      <el-form class="search-bar" :inline="true">
-        <el-form-item :label="t('roles.searchRoleName')">
-          <el-input v-model="searchForm.name" clearable @keyup.enter="onSearch" />
-        </el-form-item>
-        <el-form-item>
+      <div class="search-toolbar" @keyup.enter="onSearch">
+        <el-form class="search-fields" :inline="true">
+          <el-form-item :label="t('roles.searchRoleName')">
+            <el-select
+              v-model="searchForm.name"
+              multiple
+              filterable
+              allow-create
+              default-first-option
+              clearable
+              collapse-tags
+              collapse-tags-tooltip
+              style="width: 280px"
+              :no-match-text="t('common.noData')"
+              :no-data-text="t('common.noData')"
+              @change="(values) => enforceMaxSearchItems('name', values)"
+              @keyup.enter="onSearch"
+            >
+              <el-option v-for="item in roleNameCandidates" :key="item" :label="item" :value="item" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <div class="search-actions">
           <el-button type="primary" @click="onSearch">{{ t("common.search") }}</el-button>
           <el-button @click="onReset">{{ t("common.reset") }}</el-button>
-        </el-form-item>
-      </el-form>
+        </div>
+      </div>
 
       <el-table :data="items" :loading="loading" border :empty-text="t('common.noData')">
         <el-table-column prop="id" :label="t('users.id')" width="80" />
@@ -429,11 +471,25 @@ onMounted(loadData);
   border: 1px solid rgba(148, 163, 184, 0.24);
 }
 
-.search-bar {
+.search-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 12px;
+  margin-bottom: var(--space-2);
+}
+
+.search-fields {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 12px;
-  margin-bottom: var(--space-2);
+}
+
+.search-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  white-space: nowrap;
 }
 
 .pager {
@@ -452,5 +508,14 @@ onMounted(loadData);
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .search-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .search-actions {
+    justify-content: flex-start;
+  }
 }
 </style>
+

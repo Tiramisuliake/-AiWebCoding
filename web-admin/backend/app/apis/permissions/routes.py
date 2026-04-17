@@ -7,6 +7,15 @@ from ...components import require_permission
 from ...service.permission_service import get_permission, list_permissions
 from . import namespace
 
+MAX_SEARCH_TERMS = 5
+
+
+def parse_terms(raw: str) -> list[str]:
+    if not raw:
+        return []
+    terms = [item.strip() for item in raw.split(",") if item.strip()]
+    return terms[:MAX_SEARCH_TERMS]
+
 
 @namespace.route("")
 class PermissionListResource(Resource):
@@ -21,18 +30,18 @@ class PermissionListResource(Resource):
         if per_page is not None:
             per_page = min(max(per_page, 1), 100)
 
-        name = request.args.get("name", "", type=str).strip()
-        code = request.args.get("code", "", type=str).strip()
-        description = request.args.get("description", "", type=str).strip()
+        name_terms = parse_terms(request.args.get("name", "", type=str).strip())
+        code_terms = parse_terms(request.args.get("code", "", type=str).strip())
+        description_terms = parse_terms(request.args.get("description", "", type=str).strip())
 
         try:
             return ok(
                 list_permissions(
                     page=page,
                     per_page=per_page,
-                    name=name,
-                    code=code,
-                    description=description,
+                    name_terms=name_terms,
+                    code_terms=code_terms,
+                    description_terms=description_terms,
                 )
             )
         except ServiceError as exc:

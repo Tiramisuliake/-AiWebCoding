@@ -15,6 +15,15 @@ from ...service.menu_service import (
 from ...utils.parsers import parse_bool
 from . import namespace
 
+MAX_SEARCH_TERMS = 5
+
+
+def parse_terms(raw: str) -> list[str]:
+    if not raw:
+        return []
+    terms = [item.strip() for item in raw.split(",") if item.strip()]
+    return terms[:MAX_SEARCH_TERMS]
+
 
 @namespace.route("")
 class MenuListResource(Resource):
@@ -23,14 +32,14 @@ class MenuListResource(Resource):
     def get(self):
         include_hidden = parse_bool(request.args.get("include_hidden"), default=True)
         include_disabled = parse_bool(request.args.get("include_disabled"), default=True)
-        name = request.args.get("name", "", type=str).strip()
+        name_terms = parse_terms(request.args.get("name", "", type=str).strip())
 
         try:
             return ok(
                 list_menu_tree(
                     include_hidden=include_hidden,
                     include_disabled=include_disabled,
-                    name=name,
+                    name_terms=name_terms,
                 )
             )
         except ServiceError as exc:

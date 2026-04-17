@@ -17,6 +17,15 @@ from ...service.role_service import (
 )
 from . import namespace
 
+MAX_SEARCH_TERMS = 5
+
+
+def parse_terms(raw: str) -> list[str]:
+    if not raw:
+        return []
+    terms = [item.strip() for item in raw.split(",") if item.strip()]
+    return terms[:MAX_SEARCH_TERMS]
+
 
 @namespace.route("")
 class RoleListResource(Resource):
@@ -25,10 +34,10 @@ class RoleListResource(Resource):
     def get(self):
         page = max(request.args.get("page", 1, type=int), 1)
         per_page = min(max(request.args.get("per_page", 20, type=int), 1), 100)
-        name = request.args.get("name", "", type=str).strip()
+        name_terms = parse_terms(request.args.get("name", "", type=str).strip())
 
         try:
-            return ok(list_roles(page=page, per_page=per_page, name=name))
+            return ok(list_roles(page=page, per_page=per_page, name_terms=name_terms))
         except ServiceError as exc:
             return fail(exc.code, exc.msg, status=exc.status, data=exc.data)
 

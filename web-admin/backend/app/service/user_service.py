@@ -14,9 +14,9 @@ def list_users(
     per_page: int,
     keyword: str,
     is_active: bool | None,
-    username: str = "",
-    email: str = "",
-    role: str = "",
+    username_terms: list[str] | None = None,
+    email_terms: list[str] | None = None,
+    role_terms: list[str] | None = None,
 ) -> dict:
     session = get_session()
     pagination = paginate_scalars(
@@ -24,9 +24,9 @@ def list_users(
         repo.build_user_select(
             keyword=keyword,
             is_active=is_active,
-            username=username,
-            email=email,
-            role=role,
+            username_terms=username_terms,
+            email_terms=email_terms,
+            role_terms=role_terms,
         ),
         page=page,
         per_page=per_page,

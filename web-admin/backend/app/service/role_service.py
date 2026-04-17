@@ -9,11 +9,11 @@ from ..database.entity.models import Role
 from ..database.repository import rbac_repository as repo
 
 
-def list_roles(page: int, per_page: int, name: str = "") -> dict:
+def list_roles(page: int, per_page: int, name_terms: list[str] | None = None) -> dict:
     session = get_session()
     pagination = paginate_scalars(
         session,
-        repo.build_role_select(name=name),
+        repo.build_role_select(name_terms=name_terms),
         page=page,
         per_page=per_page,
     )

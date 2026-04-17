@@ -11,12 +11,16 @@ from ..database.repository import rbac_repository as repo
 def list_permissions(
     page: int | None = None,
     per_page: int | None = None,
-    name: str = "",
-    code: str = "",
-    description: str = "",
+    name_terms: list[str] | None = None,
+    code_terms: list[str] | None = None,
+    description_terms: list[str] | None = None,
 ) -> dict:
     session = get_session()
-    statement = repo.build_permission_select(name=name, code=code, description=description)
+    statement = repo.build_permission_select(
+        name_terms=name_terms,
+        code_terms=code_terms,
+        description_terms=description_terms,
+    )
 
     if page is None or per_page is None:
         items = session.execute(statement).scalars().all()

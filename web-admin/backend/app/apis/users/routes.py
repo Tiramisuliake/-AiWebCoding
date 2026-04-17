@@ -17,6 +17,15 @@ from ...service.user_service import (
 from ...utils.parsers import parse_bool
 from . import namespace
 
+MAX_SEARCH_TERMS = 5
+
+
+def parse_terms(raw: str) -> list[str]:
+    if not raw:
+        return []
+    terms = [item.strip() for item in raw.split(",") if item.strip()]
+    return terms[:MAX_SEARCH_TERMS]
+
 
 @namespace.route("")
 class UserListResource(Resource):
@@ -26,9 +35,9 @@ class UserListResource(Resource):
         page = max(request.args.get("page", 1, type=int), 1)
         per_page = min(max(request.args.get("per_page", 20, type=int), 1), 100)
         keyword = request.args.get("keyword", "", type=str).strip()
-        username = request.args.get("username", "", type=str).strip()
-        email = request.args.get("email", "", type=str).strip()
-        role = request.args.get("role", "", type=str).strip()
+        username_terms = parse_terms(request.args.get("username", "", type=str).strip())
+        email_terms = parse_terms(request.args.get("email", "", type=str).strip())
+        role_terms = parse_terms(request.args.get("role", "", type=str).strip())
         is_active = parse_bool(request.args.get("is_active"), default=None)
 
         try:
@@ -38,9 +47,9 @@ class UserListResource(Resource):
                     per_page=per_page,
                     keyword=keyword,
                     is_active=is_active,
-                    username=username,
-                    email=email,
-                    role=role,
+                    username_terms=username_terms,
+                    email_terms=email_terms,
+                    role_terms=role_terms,
                 )
             )
         except ServiceError as exc:

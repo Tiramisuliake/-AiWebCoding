@@ -10,23 +10,27 @@ from ..entity.models import Menu, Permission, Role, User
 def build_user_select(
     keyword: str = "",
     is_active: bool | None = None,
-    username: str = "",
-    email: str = "",
-    role: str = "",
+    username_terms: list[str] | None = None,
+    email_terms: list[str] | None = None,
+    role_terms: list[str] | None = None,
 ) -> Select:
     statement = select(User)
     joined_roles = False
 
-    if role:
+    username_terms = username_terms or []
+    email_terms = email_terms or []
+    role_terms = role_terms or []
+
+    if role_terms:
         joined_roles = True
         statement = statement.outerjoin(User.roles)
-        statement = statement.where(Role.name.like(f"%{role}%"))
+        statement = statement.where(or_(*[Role.name.like(f"%{term}%") for term in role_terms]))
 
-    if username:
-        statement = statement.where(User.username.like(f"%{username}%"))
+    if username_terms:
+        statement = statement.where(or_(*[User.username.like(f"%{term}%") for term in username_terms]))
 
-    if email:
-        statement = statement.where(User.email.like(f"%{email}%"))
+    if email_terms:
+        statement = statement.where(or_(*[User.email.like(f"%{term}%") for term in email_terms]))
 
     if keyword:
         like_keyword = f"%{keyword}%"
@@ -82,21 +86,31 @@ def get_other_role_by_name(session: Session, role_id: int, name: str) -> Role | 
     return session.execute(select(Role).where(Role.name == name, Role.id != role_id)).scalar_one_or_none()
 
 
-def build_role_select(name: str = "") -> Select:
+def build_role_select(name_terms: list[str] | None = None) -> Select:
     statement = select(Role)
-    if name:
-        statement = statement.where(Role.name.like(f"%{name}%"))
+    name_terms = name_terms or []
+    if name_terms:
+        statement = statement.where(or_(*[Role.name.like(f"%{term}%") for term in name_terms]))
     return statement.order_by(Role.id.asc())
 
 
-def build_permission_select(name: str = "", code: str = "", description: str = "") -> Select:
+def build_permission_select(
+    name_terms: list[str] | None = None,
+    code_terms: list[str] | None = None,
+    description_terms: list[str] | None = None,
+) -> Select:
     statement = select(Permission)
-    if name:
-        statement = statement.where(Permission.name.like(f"%{name}%"))
-    if code:
-        statement = statement.where(Permission.code.like(f"%{code}%"))
-    if description:
-        statement = statement.where(Permission.description.like(f"%{description}%"))
+    name_terms = name_terms or []
+    code_terms = code_terms or []
+    description_terms = description_terms or []
+    if name_terms:
+        statement = statement.where(or_(*[Permission.name.like(f"%{term}%") for term in name_terms]))
+    if code_terms:
+        statement = statement.where(or_(*[Permission.code.like(f"%{term}%") for term in code_terms]))
+    if description_terms:
+        statement = statement.where(
+            or_(*[Permission.description.like(f"%{term}%") for term in description_terms])
+        )
     return statement.order_by(Permission.id.asc())
 
 
