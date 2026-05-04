@@ -9,6 +9,30 @@ from ..database.conn import get_session
 from ..database.repository import rbac_repository as repo
 
 
+def _normalize_requested_ids(raw_ids: list[object]) -> tuple[list[int], list[object]]:
+    normalized: list[int] = []
+    invalid: list[object] = []
+    seen: set[int] = set()
+
+    for raw in raw_ids:
+        try:
+            value = int(raw)
+        except (TypeError, ValueError):
+            invalid.append(raw)
+            continue
+
+        if value <= 0:
+            invalid.append(raw)
+            continue
+
+        if value in seen:
+            continue
+        seen.add(value)
+        normalized.append(value)
+
+    return normalized, invalid
+
+
 def list_users(
     page: int,
     per_page: int,
@@ -145,14 +169,34 @@ def assign_user_roles(user_id: int, role_ids: list[int]) -> dict:
     if user is None:
         raise ServiceError(ERR_NOT_FOUND, "user not found", status=404)
 
-    roles = repo.list_roles_by_ids(session, role_ids) if role_ids else []
+    normalized_ids, invalid_ids = _normalize_requested_ids(role_ids)
+    roles = repo.list_roles_by_ids(session, normalized_ids) if normalized_ids else []
+    role_map = {role.id: role for role in roles}
+    for role_id in normalized_ids:
+        if role_id not in role_map:
+            invalid_ids.append(role_id)
+
     existing_ids = {role.id for role in user.roles}
+    applied_ids: list[int] = []
     for role in roles:
         if role.id not in existing_ids:
             user.roles.append(role)
+            existing_ids.add(role.id)
+            applied_ids.append(role.id)
 
     session.commit()
-    return {"user_id": user.id, "role_ids": [role.id for role in user.roles]}
+
+    warnings: list[str] = []
+    if invalid_ids:
+        warnings.append("Some role_ids are invalid and were ignored.")
+
+    return {
+        "user_id": user.id,
+        "role_ids": [role.id for role in user.roles],
+        "applied_ids": applied_ids,
+        "invalid_ids": invalid_ids,
+        "warnings": warnings,
+    }
 
 
 def remove_user_role(user_id: int, role_id: int) -> None:

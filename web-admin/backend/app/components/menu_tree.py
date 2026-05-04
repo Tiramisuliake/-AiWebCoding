@@ -15,7 +15,11 @@ def _is_enabled_visible(menu) -> bool:
 
 def _has_enabled_visible_ancestors(menu, menu_map: dict[int, object]) -> bool:
     current = menu
+    visited: set[int] = set()
     while current.parent_id:
+        if current.id in visited:
+            return False
+        visited.add(current.id)
         parent = menu_map.get(current.parent_id)
         if parent is None:
             return False
@@ -28,7 +32,11 @@ def _has_enabled_visible_ancestors(menu, menu_map: dict[int, object]) -> bool:
 def _collect_parent_ids(menu, menu_map: dict[int, object]) -> set[int]:
     parent_ids: set[int] = set()
     current = menu
+    visited: set[int] = set()
     while current.parent_id:
+        if current.id in visited:
+            break
+        visited.add(current.id)
         parent = menu_map.get(current.parent_id)
         if parent is None:
             break

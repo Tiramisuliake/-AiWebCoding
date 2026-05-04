@@ -58,6 +58,18 @@ function normalizeError(error, fallbackKey) {
   return error.response?.data?.msg || error.message || t(fallbackKey);
 }
 
+function showWarnings(payload) {
+  const warnings = payload?.warnings;
+  if (!Array.isArray(warnings)) {
+    return;
+  }
+  for (const item of warnings) {
+    if (item) {
+      ElMessage.warning(String(item));
+    }
+  }
+}
+
 function uniqueStrings(values) {
   return [...new Set((values || []).map((item) => String(item || "").trim()).filter(Boolean))];
 }
@@ -234,6 +246,7 @@ async function submitPermissionAssignment() {
     if (response.code !== 0) {
       throw new Error(response.msg || t("roles.assignFailed"));
     }
+    showWarnings(response.data);
     permissionDialogVisible.value = false;
     ElMessage.success(t("roles.assignSuccess"));
     await loadData();
@@ -277,6 +290,7 @@ async function submitMenuAssignment() {
     if (response.code !== 0) {
       throw new Error(response.msg || t("roles.assignMenuFailed"));
     }
+    showWarnings(response.data);
     menuDialogVisible.value = false;
     ElMessage.success(t("roles.assignMenuSuccess"));
   } catch (error) {

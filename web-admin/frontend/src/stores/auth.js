@@ -73,7 +73,7 @@ export const useAuthStore = defineStore("auth", () => {
   async function logout() {
     try {
       if (accessToken.value) {
-        await authApi.logout();
+        await authApi.logout(refreshTokenValue.value);
       }
     } catch (_error) {
       // Best-effort logout; local state still gets cleared.

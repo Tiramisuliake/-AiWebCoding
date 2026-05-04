@@ -12,7 +12,11 @@ from ..database.repository import rbac_repository as repo
 def _collect_parent_ids(menu: Menu, menu_map: dict[int, Menu]) -> set[int]:
     parent_ids: set[int] = set()
     current = menu
+    visited: set[int] = set()
     while current.parent_id:
+        if current.id in visited:
+            break
+        visited.add(current.id)
         parent = menu_map.get(current.parent_id)
         if parent is None:
             break
@@ -40,6 +44,29 @@ def _filter_menus_by_name_with_ancestors(menus: list[Menu], name_terms: list[str
             allowed_ids.update(_collect_parent_ids(menu, menu_map))
 
     return [menu for menu in menus if menu.id in allowed_ids]
+
+
+def _would_create_cycle(session, menu_id: int, next_parent_id: int | None) -> bool:
+    if next_parent_id is None:
+        return False
+
+    all_menus = repo.list_all_menus_ordered(session)
+    menu_map = {item.id: item for item in all_menus}
+
+    current_id: int | None = next_parent_id
+    visited: set[int] = set()
+    while current_id is not None:
+        if current_id == menu_id:
+            return True
+        if current_id in visited:
+            return True
+        visited.add(current_id)
+
+        current = menu_map.get(current_id)
+        if current is None:
+            return False
+        current_id = current.parent_id
+    return False
 
 
 def list_menu_tree(
@@ -129,6 +156,8 @@ def update_menu(menu_id: int, payload: dict) -> dict:
             parent = repo.get_menu_by_id(session, parent_id)
             if parent is None:
                 raise ServiceError(ERR_NOT_FOUND, "parent menu not found", status=404)
+            if _would_create_cycle(session, menu.id, parent_id):
+                raise ServiceError(ERR_INVALID_REQUEST, "menu hierarchy cycle detected", status=400)
         menu.parent_id = parent_id
 
     if "route_path" in payload:

@@ -41,10 +41,18 @@ def client(app):
 
 
 @pytest.fixture()
-def auth_header(client):
+def auth_tokens(client):
     response = client.post(
         "/api/auth/login", json={"username": "admin", "password": "password123"}
     )
     data = response.get_json()
-    token = data["data"]["access_token"]
+    return {
+        "access_token": data["data"]["access_token"],
+        "refresh_token": data["data"]["refresh_token"],
+    }
+
+
+@pytest.fixture()
+def auth_header(auth_tokens):
+    token = auth_tokens["access_token"]
     return {"Authorization": f"Bearer {token}"}

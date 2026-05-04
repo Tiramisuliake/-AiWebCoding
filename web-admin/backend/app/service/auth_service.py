@@ -1,6 +1,6 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
 
 from ..components.errors import ServiceError
 from ..components.security import verify_password
@@ -30,13 +30,41 @@ def login(username: str, password: str) -> dict:
     }
 
 
-def logout(jti: str | None) -> None:
-    if not jti:
-        return
+def _decode_refresh_token(refresh_token: str) -> tuple[str, str]:
+    try:
+        payload = decode_token(refresh_token)
+    except Exception as exc:
+        raise ServiceError(ERR_AUTH, "unauthorized", status=401) from exc
+
+    token_type = str(payload.get("type", ""))
+    identity = payload.get("sub")
+    jti = payload.get("jti")
+    if token_type != "refresh" or not identity or not jti:
+        raise ServiceError(ERR_AUTH, "unauthorized", status=401)
+    return str(identity), str(jti)
+
+
+def logout(
+    access_jti: str | None,
+    access_identity: str | int | None,
+    refresh_token: str | None,
+) -> None:
+    if not isinstance(refresh_token, str) or not refresh_token.strip():
+        raise ServiceError(ERR_INVALID_REQUEST, "refresh_token is required", status=400)
+    if not access_jti or access_identity is None:
+        raise ServiceError(ERR_AUTH, "unauthorized", status=401)
+
+    refresh_identity, refresh_jti = _decode_refresh_token(refresh_token.strip())
+    if str(access_identity) != refresh_identity:
+        raise ServiceError(ERR_AUTH, "unauthorized", status=401)
 
     session = get_session()
-    if get_token_block(session, jti) is None:
-        add_token_block(session, jti)
+    changed = False
+    for jti in {str(access_jti), refresh_jti}:
+        if get_token_block(session, jti) is None:
+            add_token_block(session, jti)
+            changed = True
+    if changed:
         session.commit()
 
 
@@ -57,4 +85,3 @@ def is_token_revoked(jti: str | None) -> bool:
 
 
 __all__ = ["is_token_revoked", "login", "logout", "refresh_access_token"]
-

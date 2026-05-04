@@ -120,3 +120,57 @@ def test_admin_my_tree_shows_all_enabled_visible(client, auth_header):
     assert "/roles" in paths
     assert "/permissions" in paths
     assert "/menus" in paths
+
+
+def test_menu_update_rejects_descendant_parent(client, auth_header):
+    root_resp = client.post(
+        "/api/menus",
+        headers=auth_header,
+        json={"name": "Root Node", "route_path": "/root-node", "sort": 310},
+    )
+    assert root_resp.status_code == 201
+    root_id = root_resp.get_json()["data"]["id"]
+
+    child_resp = client.post(
+        "/api/menus",
+        headers=auth_header,
+        json={"name": "Child Node", "parent_id": root_id, "route_path": "/child-node", "sort": 320},
+    )
+    assert child_resp.status_code == 201
+    child_id = child_resp.get_json()["data"]["id"]
+
+    grand_resp = client.post(
+        "/api/menus",
+        headers=auth_header,
+        json={"name": "Grand Node", "parent_id": child_id, "route_path": "/grand-node", "sort": 330},
+    )
+    assert grand_resp.status_code == 201
+    grand_id = grand_resp.get_json()["data"]["id"]
+
+    update_resp = client.put(
+        f"/api/menus/{root_id}",
+        headers=auth_header,
+        json={"parent_id": grand_id},
+    )
+    payload = update_resp.get_json()
+    assert update_resp.status_code == 400
+    assert payload["code"] == 1001
+
+
+def test_my_tree_handles_cycle_data_safely(client, auth_header, app):
+    with app.app_context():
+        session = get_session()
+        dashboard = get_menu_by_route_path(session, "/")
+        users_menu = get_menu_by_route_path(session, "/users")
+        assert dashboard is not None
+        assert users_menu is not None
+
+        dashboard.parent_id = users_menu.id
+        users_menu.parent_id = dashboard.id
+        session.commit()
+
+    response = client.get("/api/menus/my-tree", headers=auth_header)
+    payload = response.get_json()
+    assert response.status_code == 200
+    assert payload["code"] == 0
+    assert isinstance(payload["data"]["items"], list)

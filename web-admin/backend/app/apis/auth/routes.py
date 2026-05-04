@@ -24,8 +24,15 @@ class LoginResource(Resource):
 class LogoutResource(Resource):
     @jwt_required()
     def post(self):
+        payload = request.get_json(silent=True) or {}
+        refresh_token = payload.get("refresh_token")
+
         try:
-            logout(get_jwt().get("jti"))
+            logout(
+                access_jti=get_jwt().get("jti"),
+                access_identity=get_jwt_identity(),
+                refresh_token=refresh_token,
+            )
             return ok(data=None)
         except ServiceError as exc:
             return fail(exc.code, exc.msg, status=exc.status, data=exc.data)

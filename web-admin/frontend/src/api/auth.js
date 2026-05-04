@@ -5,8 +5,10 @@ export async function login(payload) {
   return data;
 }
 
-export async function logout() {
-  const { data } = await http.post("/auth/logout");
+export async function logout(refreshTokenValue) {
+  const { data } = await http.post("/auth/logout", {
+    refresh_token: refreshTokenValue
+  });
   return data;
 }
 

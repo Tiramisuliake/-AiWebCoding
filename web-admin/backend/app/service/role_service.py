@@ -9,6 +9,30 @@ from ..database.entity.models import Role
 from ..database.repository import rbac_repository as repo
 
 
+def _normalize_requested_ids(raw_ids: list[object]) -> tuple[list[int], list[object]]:
+    normalized: list[int] = []
+    invalid: list[object] = []
+    seen: set[int] = set()
+
+    for raw in raw_ids:
+        try:
+            value = int(raw)
+        except (TypeError, ValueError):
+            invalid.append(raw)
+            continue
+
+        if value <= 0:
+            invalid.append(raw)
+            continue
+
+        if value in seen:
+            continue
+        seen.add(value)
+        normalized.append(value)
+
+    return normalized, invalid
+
+
 def list_roles(page: int, per_page: int, name_terms: list[str] | None = None) -> dict:
     session = get_session()
     pagination = paginate_scalars(
@@ -110,9 +134,27 @@ def assign_role_permissions(role_id: int, permission_ids: list[int]) -> dict:
     if role is None:
         raise ServiceError(ERR_NOT_FOUND, "role not found", status=404)
 
-    role.permissions = repo.list_permissions_by_ids(session, permission_ids) if permission_ids else []
+    normalized_ids, invalid_ids = _normalize_requested_ids(permission_ids)
+    permissions = repo.list_permissions_by_ids(session, normalized_ids) if normalized_ids else []
+    permission_map = {permission.id: permission for permission in permissions}
+    for permission_id in normalized_ids:
+        if permission_id not in permission_map:
+            invalid_ids.append(permission_id)
+
+    role.permissions = permissions
     session.commit()
-    return {"role_id": role.id, "permission_ids": [permission.id for permission in role.permissions]}
+
+    assigned_ids = [permission.id for permission in role.permissions]
+    warnings: list[str] = []
+    if invalid_ids:
+        warnings.append("Some permission_ids are invalid and were ignored.")
+    return {
+        "role_id": role.id,
+        "permission_ids": assigned_ids,
+        "applied_ids": assigned_ids,
+        "invalid_ids": invalid_ids,
+        "warnings": warnings,
+    }
 
 
 def get_role_menus(role_id: int) -> dict:
@@ -130,9 +172,27 @@ def assign_role_menus(role_id: int, menu_ids: list[int]) -> dict:
     if role is None:
         raise ServiceError(ERR_NOT_FOUND, "role not found", status=404)
 
-    role.menus = repo.list_menus_by_ids(session, menu_ids) if menu_ids else []
+    normalized_ids, invalid_ids = _normalize_requested_ids(menu_ids)
+    menus = repo.list_menus_by_ids(session, normalized_ids) if normalized_ids else []
+    menu_map = {menu.id: menu for menu in menus}
+    for menu_id in normalized_ids:
+        if menu_id not in menu_map:
+            invalid_ids.append(menu_id)
+
+    role.menus = menus
     session.commit()
-    return {"role_id": role.id, "menu_ids": [menu.id for menu in role.menus]}
+
+    assigned_ids = [menu.id for menu in role.menus]
+    warnings: list[str] = []
+    if invalid_ids:
+        warnings.append("Some menu_ids are invalid and were ignored.")
+    return {
+        "role_id": role.id,
+        "menu_ids": assigned_ids,
+        "applied_ids": assigned_ids,
+        "invalid_ids": invalid_ids,
+        "warnings": warnings,
+    }
 
 
 __all__ = [

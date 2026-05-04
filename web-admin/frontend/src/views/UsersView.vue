@@ -73,6 +73,18 @@ function normalizeError(error, fallbackKey) {
   return error.response?.data?.msg || error.message || t(fallbackKey);
 }
 
+function showWarnings(payload) {
+  const warnings = payload?.warnings;
+  if (!Array.isArray(warnings)) {
+    return;
+  }
+  for (const item of warnings) {
+    if (item) {
+      ElMessage.warning(String(item));
+    }
+  }
+}
+
 function uniqueStrings(values) {
   return [...new Set((values || []).map((item) => String(item || "").trim()).filter(Boolean))];
 }
@@ -276,6 +288,7 @@ async function submitRoleAssignment() {
       if (addResponse.code !== 0) {
         throw new Error(addResponse.msg || t("users.submitFailed"));
       }
+      showWarnings(addResponse.data);
     }
 
     for (const roleId of toRemove) {
