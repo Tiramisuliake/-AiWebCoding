@@ -5,33 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5c567db5-afa1-4e69-8746-e18539bc0ba9" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/app/apis/menus/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/apis/menus/routes.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/service/menu_service.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/upgrade_menu_feature.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_menus.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../frontend/src/stores/menu.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../frontend/src/views/MenuManageView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/claudeCodeTabState.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/claudeCodeTabState.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/apis/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/apis/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/apis/roles/routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/apis/roles/routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/const/permissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/const/permissions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/database/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/database/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/rbac_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/rbac_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/api/rbac.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/api/rbac.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/components/AppLayout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/components/AppLayout.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/i18n/messages.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/i18n/messages.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/router/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/stores/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/stores/auth.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/views/RolesView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/views/RolesView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DjangoConsoleOptions" custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)">
+    <option name="myCustomStartScript" value="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)" />
+  </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
@@ -44,24 +38,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.db_schema.executor": "Run",
-    "Python.run.executor": "Run",
-    "Python.upgrade_menu_feature.executor": "Run",
-    "RunOnceActivity.OpenDjangoStructureViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "G:/py/aiweb",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.db_schema.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run.executor&quot;: &quot;Run&quot;,
+    &quot;Python.upgrade_menu_feature.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenDjangoStructureViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;G:/py/aiweb&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settings.ide.settings.new.ui&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.run">
     <configuration name="db_schema" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="backend" />
@@ -135,6 +130,8 @@
       <workItem from="1775985896219" duration="8488000" />
       <workItem from="1775997412779" duration="221000" />
       <workItem from="1776004676414" duration="7073000" />
+      <workItem from="1777810898826" duration="5877000" />
+      <workItem from="1777895678929" duration="1521000" />
     </task>
     <servers />
   </component>
