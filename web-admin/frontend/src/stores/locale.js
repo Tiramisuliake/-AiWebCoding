@@ -2,26 +2,23 @@ import { ref } from "vue";
 import { defineStore } from "pinia";
 
 const LOCALE_KEY = "web_admin_locale";
-const SUPPORTED_LOCALES = ["zh-CN", "en-US"];
+const FIXED_LOCALE = "zh-CN";
+const SUPPORTED_LOCALES = [FIXED_LOCALE];
 
 export const useLocaleStore = defineStore("locale", () => {
-  const locale = ref("zh-CN");
+  const locale = ref(FIXED_LOCALE);
 
   function restoreLocale() {
-    const stored = localStorage.getItem(LOCALE_KEY);
-    if (stored && SUPPORTED_LOCALES.includes(stored)) {
-      locale.value = stored;
-    } else {
-      locale.value = "zh-CN";
-    }
+    locale.value = FIXED_LOCALE;
+    localStorage.setItem(LOCALE_KEY, FIXED_LOCALE);
   }
 
   function setLocale(nextLocale) {
-    if (!SUPPORTED_LOCALES.includes(nextLocale)) {
+    if (nextLocale !== FIXED_LOCALE) {
       return;
     }
-    locale.value = nextLocale;
-    localStorage.setItem(LOCALE_KEY, nextLocale);
+    locale.value = FIXED_LOCALE;
+    localStorage.setItem(LOCALE_KEY, FIXED_LOCALE);
   }
 
   return {

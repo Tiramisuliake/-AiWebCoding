@@ -98,6 +98,14 @@ def apply_env_config(app):
         "PERMISSION_CN_SYNC_ON_STARTUP",
         _env_bool(_pick_profiled_env("PERMISSION_CN_SYNC_ON_STARTUP", profile), default=True),
     )
+    app.config.setdefault(
+        "MENU_CN_SYNC_ON_STARTUP",
+        _env_bool(_pick_profiled_env("MENU_CN_SYNC_ON_STARTUP", profile), default=True),
+    )
+    app.config.setdefault(
+        "MENU_CN_FORCE_ON_WRITE",
+        _env_bool(_pick_profiled_env("MENU_CN_FORCE_ON_WRITE", profile), default=True),
+    )
 
     # Database engine options, aligned with create_engine/sessionmaker mode.
     app.config.setdefault(

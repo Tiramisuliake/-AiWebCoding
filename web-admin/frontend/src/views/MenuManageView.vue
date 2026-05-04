@@ -32,7 +32,7 @@ const form = reactive({
 });
 
 const rules = {
-  name: [{ required: true, message: "Menu name is required", trigger: "blur" }]
+  name: [{ required: true, message: t("menus.nameRequired"), trigger: "blur" }]
 };
 
 function normalizeError(error, fallbackKey) {

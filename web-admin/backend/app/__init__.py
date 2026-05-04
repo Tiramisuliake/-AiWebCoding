@@ -9,6 +9,7 @@ from .conf.config import CONFIG_MAP, apply_env_config
 from .conf.extensions import bcrypt, init_celery, jwt
 from .database.conn import init_engine, remove_session
 from .service.auth_service import is_token_revoked
+from .service.menu_service import sync_menu_names_to_cn
 from .service.rbac_seed_service import sync_builtin_permissions_to_cn
 
 
@@ -50,6 +51,27 @@ def create_app(config_name=None, config_overrides=None):
         except Exception as exc:  # pragma: no cover - startup guard
             app.logger.exception(
                 "Unexpected error during builtin permission localization sync: %s",
+                exc,
+            )
+
+    if app.config.get("MENU_CN_SYNC_ON_STARTUP", True):
+        try:
+            sync_result = sync_menu_names_to_cn()
+            if sync_result.get("updated"):
+                app.logger.info(
+                    "Menu localization synced on startup, updated: %s",
+                    sync_result["updated"],
+                )
+            if sync_result.get("skipped") == "menus_table_unavailable":
+                app.logger.info("Menu localization skipped because `menus` table is unavailable.")
+            if sync_result.get("skipped") == "sync_error":
+                app.logger.warning(
+                    "Menu localization failed but app startup continues: %s",
+                    sync_result.get("error", "unknown error"),
+                )
+        except Exception as exc:  # pragma: no cover - startup guard
+            app.logger.exception(
+                "Unexpected error during menu localization sync: %s",
                 exc,
             )
 

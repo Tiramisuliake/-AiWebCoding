@@ -6,6 +6,7 @@ from .menu_service import (
     get_menu,
     get_user_menu_tree,
     list_menu_tree,
+    sync_menu_names_to_cn,
     update_menu,
 )
 from .permission_service import get_permission, list_permissions
@@ -60,6 +61,7 @@ __all__ = [
     "refresh_access_token",
     "remove_user_role",
     "seed_rbac",
+    "sync_menu_names_to_cn",
     "update_menu",
     "update_role",
     "update_user",

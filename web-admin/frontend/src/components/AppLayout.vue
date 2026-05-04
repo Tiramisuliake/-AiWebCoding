@@ -15,7 +15,7 @@ const router = useRouter();
 const menuOpen = ref(false);
 const sidebarCollapsed = ref(false);
 const expandedGroupKeys = ref([]);
-const { t, locale, setLocale } = useI18n();
+const { t } = useI18n();
 const SIDEBAR_COLLAPSED_KEY = "web_admin_sidebar_collapsed";
 
 const navItems = computed(() => menuStore.userMenuTree || []);
@@ -32,11 +32,6 @@ const currentTitle = computed(() => {
 });
 
 const displayName = computed(() => authStore.user?.username || t("common.unknown"));
-
-const localeOptions = computed(() => [
-  { value: "zh-CN", label: t("common.chinese") },
-  { value: "en-US", label: t("common.english") }
-]);
 
 watch(
   () => route.fullPath,
@@ -163,10 +158,6 @@ function navigate(path) {
   router.push(path);
 }
 
-function onLocaleChange(value) {
-  setLocale(value);
-}
-
 function onSidebarToggle() {
   if (window.innerWidth <= 900) {
     menuOpen.value = !menuOpen.value;
@@ -280,19 +271,6 @@ function onTabCommand(command) {
         </div>
 
         <div class="topbar-right">
-          <el-select
-            :model-value="locale"
-            size="small"
-            style="width: 110px"
-            @change="onLocaleChange"
-          >
-            <el-option
-              v-for="option in localeOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
           <el-button type="danger" plain @click="onLogout">{{ t("common.logout") }}</el-button>
         </div>
       </header>

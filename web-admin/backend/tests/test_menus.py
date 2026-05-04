@@ -95,11 +95,11 @@ def test_role_assign_menu_and_my_tree_visibility(client, auth_header, app):
     assert payload["code"] == 0
 
     top_names = {item["name"] for item in payload["data"]["items"]}
-    assert "Permission Management" in top_names
+    assert "权限管理" in top_names
     assert "Hidden Menu" not in top_names
     assert "Disabled Menu" not in top_names
 
-    rbac_root = next(item for item in payload["data"]["items"] if item["name"] == "Permission Management")
+    rbac_root = next(item for item in payload["data"]["items"] if item["name"] == "权限管理")
     child_paths = {child["route_path"] for child in rbac_root["children"]}
     assert "/permissions" in child_paths
 

@@ -16,7 +16,7 @@ def _seed_default_menus(session) -> tuple[list[Menu], int]:
         return existing, 0
 
     dashboard = Menu(
-        name="Dashboard",
+        name="仪表盘",
         route_path="/",
         icon="HomeFilled",
         sort=10,
@@ -24,7 +24,7 @@ def _seed_default_menus(session) -> tuple[list[Menu], int]:
         is_enabled=True,
     )
     users = Menu(
-        name="Users",
+        name="用户管理",
         route_path="/users",
         icon="User",
         sort=20,
@@ -33,7 +33,7 @@ def _seed_default_menus(session) -> tuple[list[Menu], int]:
         permission_code="user:list",
     )
     rbac_root = Menu(
-        name="Permission Management",
+        name="权限管理",
         route_path=None,
         icon="Lock",
         sort=30,
@@ -45,7 +45,7 @@ def _seed_default_menus(session) -> tuple[list[Menu], int]:
     session.flush()
 
     roles = Menu(
-        name="Roles",
+        name="角色管理",
         parent_id=rbac_root.id,
         route_path="/roles",
         icon="UserFilled",
@@ -55,7 +55,7 @@ def _seed_default_menus(session) -> tuple[list[Menu], int]:
         permission_code="role:list",
     )
     permissions = Menu(
-        name="Permissions",
+        name="权限列表",
         parent_id=rbac_root.id,
         route_path="/permissions",
         icon="Key",
@@ -65,7 +65,7 @@ def _seed_default_menus(session) -> tuple[list[Menu], int]:
         permission_code="permission:list",
     )
     menu_manage = Menu(
-        name="Menus",
+        name="菜单管理",
         parent_id=rbac_root.id,
         route_path="/menus",
         icon="Menu",

@@ -10,17 +10,12 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const formRef = ref();
-const { t, locale, setLocale } = useI18n();
+const { t } = useI18n();
 
 const form = reactive({
   username: "",
   password: ""
 });
-
-const localeOptions = computed(() => [
-  { value: "zh-CN", label: t("common.chinese") },
-  { value: "en-US", label: t("common.english") }
-]);
 
 const rules = computed(() => ({
   username: [{ required: true, message: t("login.usernameRequired"), trigger: "blur" }],
@@ -39,10 +34,6 @@ async function submit() {
     ElMessage.error(msg);
   }
 }
-
-function onLocaleChange(value) {
-  setLocale(value);
-}
 </script>
 
 <template>
@@ -57,19 +48,6 @@ function onLocaleChange(value) {
           <h1 class="title">{{ t("login.title") }}</h1>
           <p class="subtitle">{{ t("login.subtitle") }}</p>
         </div>
-        <el-select
-          :model-value="locale"
-          size="small"
-          style="width: 105px"
-          @change="onLocaleChange"
-        >
-          <el-option
-            v-for="option in localeOptions"
-            :key="option.value"
-            :label="option.label"
-            :value="option.value"
-          />
-        </el-select>
       </div>
 
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">

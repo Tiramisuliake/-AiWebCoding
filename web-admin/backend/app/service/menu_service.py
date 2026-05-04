@@ -1,6 +1,10 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
+from flask import current_app
+from sqlalchemy.exc import SQLAlchemyError
 
 from ..components.errors import ServiceError
+from ..components.menu_localization import normalize_menu_name_to_cn
 from ..components.menu_tree import build_menu_tree, filter_user_menu_tree
 from ..components.serializers import menu_to_dict
 from ..const import ERR_AUTH, ERR_INVALID_REQUEST, ERR_NOT_FOUND
@@ -69,6 +73,23 @@ def _would_create_cycle(session, menu_id: int, next_parent_id: int | None) -> bo
     return False
 
 
+def _is_menu_table_missing(error: Exception) -> bool:
+    message = str(error).lower()
+    missing_signatures = (
+        "no such table",
+        "doesn't exist",
+        "does not exist",
+        "unknown table",
+    )
+    return any(signature in message for signature in missing_signatures)
+
+
+def _normalize_menu_name(name: str, route_path: str | None) -> str:
+    if not current_app.config.get("MENU_CN_FORCE_ON_WRITE", True):
+        return name
+    return normalize_menu_name_to_cn(name, route_path)
+
+
 def list_menu_tree(
     include_hidden: bool = True,
     include_disabled: bool = True,
@@ -97,6 +118,8 @@ def create_menu(
     if not name:
         raise ServiceError(ERR_INVALID_REQUEST, "name is required", status=400)
 
+    normalized_name = _normalize_menu_name(name, route_path)
+
     session = get_session()
     if parent_id is not None:
         parent = repo.get_menu_by_id(session, parent_id)
@@ -104,7 +127,7 @@ def create_menu(
             raise ServiceError(ERR_NOT_FOUND, "parent menu not found", status=404)
 
     menu = Menu(
-        name=name,
+        name=normalized_name,
         parent_id=parent_id,
         route_path=route_path,
         icon=icon,
@@ -146,7 +169,11 @@ def update_menu(menu_id: int, payload: dict) -> dict:
         name = str(payload.get("name", "")).strip()
         if not name:
             raise ServiceError(ERR_INVALID_REQUEST, "name cannot be empty", status=400)
-        menu.name = name
+        next_route_path = menu.route_path
+        if "route_path" in payload:
+            route_path_payload = payload.get("route_path")
+            next_route_path = str(route_path_payload).strip() if route_path_payload else None
+        menu.name = _normalize_menu_name(name, next_route_path)
 
     if "parent_id" in payload:
         parent_id = payload.get("parent_id")
@@ -203,12 +230,47 @@ def delete_menu(menu_id: int) -> None:
     session.commit()
 
 
+def sync_menu_names_to_cn() -> dict:
+    session = get_session()
+    try:
+        menus = repo.list_all_menus_ordered(session)
+        updated_count = 0
+        for menu in menus:
+            normalized_name = normalize_menu_name_to_cn(menu.name, menu.route_path)
+            if normalized_name and normalized_name != menu.name:
+                menu.name = normalized_name
+                updated_count += 1
+
+        if updated_count:
+            session.commit()
+
+        return {
+            "checked": len(menus),
+            "updated": updated_count,
+        }
+    except SQLAlchemyError as exc:
+        session.rollback()
+        if _is_menu_table_missing(exc):
+            return {
+                "checked": 0,
+                "updated": 0,
+                "skipped": "menus_table_unavailable",
+            }
+        return {
+            "checked": 0,
+            "updated": 0,
+            "skipped": "sync_error",
+            "error": str(exc),
+        }
+
+
 __all__ = [
     "create_menu",
     "delete_menu",
     "get_menu",
     "get_user_menu_tree",
     "list_menu_tree",
+    "sync_menu_names_to_cn",
     "update_menu",
 ]
 

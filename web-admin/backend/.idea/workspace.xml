@@ -5,17 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5c567db5-afa1-4e69-8746-e18539bc0ba9" name="更改" comment=" 测试">
-      <change afterPath="$PROJECT_DIR$/tests/test_permission_localization.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/components/menu_localization.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/test_menu_localization.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../AGENTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/../AGENTS.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/conf/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/conf/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/const/permissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/const/permissions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/menu_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/menu_service.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/service/rbac_seed_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/rbac_seed_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_menus.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_menus.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/components/AppLayout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/components/AppLayout.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../frontend/src/i18n/messages.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/i18n/messages.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/views/PermissionsView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/views/PermissionsView.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../frontend/src/views/RolesView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/views/RolesView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/stores/locale.js" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/stores/locale.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/views/LoginView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/views/LoginView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend/src/views/MenuManageView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend/src/views/MenuManageView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -186,7 +191,7 @@
     <option name="LAST_COMMIT_MESSAGE" value=" 测试" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/backend$run.coverage" NAME="run 覆盖结果" MODIFIED="1777905211560" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/backend$run.coverage" NAME="run 覆盖结果" MODIFIED="1777915751216" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/backend$upgrade_menu_feature.coverage" NAME="upgrade_menu_feature 覆盖结果" MODIFIED="1776007521527" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/scripts" />
     <SUITE FILE_PATH="coverage/backend$db_schema.coverage" NAME="db_schema 覆盖结果" MODIFIED="1775992672480" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/scripts" />
   </component>
