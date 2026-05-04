@@ -9,6 +9,7 @@ from .conf.config import CONFIG_MAP, apply_env_config
 from .conf.extensions import bcrypt, init_celery, jwt
 from .database.conn import init_engine, remove_session
 from .service.auth_service import is_token_revoked
+from .service.rbac_seed_service import sync_builtin_permissions_to_cn
 
 
 def create_app(config_name=None, config_overrides=None):
@@ -28,6 +29,29 @@ def create_app(config_name=None, config_overrides=None):
     jwt.init_app(app)
     CORS(app, origins=app.config["CORS_ORIGINS"].split(","))
     init_celery(app)
+
+    if app.config.get("PERMISSION_CN_SYNC_ON_STARTUP", True):
+        try:
+            sync_result = sync_builtin_permissions_to_cn()
+            if sync_result.get("updated"):
+                app.logger.info(
+                    "Builtin permission localization synced on startup, updated: %s",
+                    sync_result["updated"],
+                )
+            if sync_result.get("skipped") == "permissions_table_unavailable":
+                app.logger.info(
+                    "Builtin permission localization skipped because table is unavailable."
+                )
+            if sync_result.get("skipped") == "sync_error":
+                app.logger.warning(
+                    "Builtin permission localization failed but app startup continues: %s",
+                    sync_result.get("error", "unknown error"),
+                )
+        except Exception as exc:  # pragma: no cover - startup guard
+            app.logger.exception(
+                "Unexpected error during builtin permission localization sync: %s",
+                exc,
+            )
 
     @jwt.token_in_blocklist_loader
     def on_token_in_blocklist(_jwt_header, jwt_payload):

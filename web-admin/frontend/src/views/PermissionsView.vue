@@ -40,7 +40,7 @@ function enforceMaxSearchItems(field, values) {
 }
 
 const permissionNameCandidates = computed(() => {
-  return uniqueStrings(items.value.map((item) => item.name));
+  return uniqueStrings(items.value.map((item) => getPermissionName(item)));
 });
 
 const permissionCodeCandidates = computed(() => {
@@ -59,6 +59,16 @@ function getPermissionDescription(item) {
   const i18nKey = `permissions.codeDescriptions.${codeKey}`;
   const localized = t(i18nKey);
   return localized === i18nKey ? item?.description || "" : localized;
+}
+
+function getPermissionName(item) {
+  const codeKey = String(item?.code || "").replaceAll(":", "_");
+  if (!codeKey) {
+    return item?.name || "";
+  }
+  const i18nKey = `permissions.codeNames.${codeKey}`;
+  const localized = t(i18nKey);
+  return localized === i18nKey ? item?.name || "" : localized;
 }
 
 async function loadData() {
@@ -197,7 +207,11 @@ onMounted(loadData);
 
       <el-table :data="items" :loading="loading" :empty-text="t('common.noData')">
         <el-table-column prop="id" :label="t('users.id')" width="80" />
-        <el-table-column prop="name" :label="t('permissions.permissionName')" />
+        <el-table-column :label="t('permissions.permissionName')">
+          <template #default="{ row }">
+            {{ getPermissionName(row) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="code" :label="t('permissions.code')" />
         <el-table-column :label="t('permissions.description')">
           <template #default="{ row }">

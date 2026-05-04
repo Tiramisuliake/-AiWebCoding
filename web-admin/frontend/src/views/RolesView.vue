@@ -70,6 +70,25 @@ function showWarnings(payload) {
   }
 }
 
+function getPermissionName(permission) {
+  const codeKey = String(permission?.code || "").replaceAll(":", "_");
+  if (!codeKey) {
+    return permission?.name || "";
+  }
+  const i18nKey = `permissions.codeNames.${codeKey}`;
+  const localized = t(i18nKey);
+  return localized === i18nKey ? permission?.name || "" : localized;
+}
+
+function formatPermissionLabel(permission) {
+  const permissionName = getPermissionName(permission);
+  const permissionCode = permission?.code || "";
+  if (!permissionCode) {
+    return permissionName;
+  }
+  return `${permissionName}（${permissionCode}）`;
+}
+
 function uniqueStrings(values) {
   return [...new Set((values || []).map((item) => String(item || "").trim()).filter(Boolean))];
 }
@@ -409,7 +428,7 @@ onMounted(loadData);
         <el-option
           v-for="permission in permissionOptions"
           :key="permission.id"
-          :label="`${permission.code} (${permission.name})`"
+          :label="formatPermissionLabel(permission)"
           :value="permission.id"
         />
       </el-select>

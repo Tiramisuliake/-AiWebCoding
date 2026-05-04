@@ -1,9 +1,10 @@
 ﻿from __future__ import annotations
 
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 
 from ..components.security import hash_password
-from ..const.permissions import DEFAULT_PERMISSION_CODES
+from ..const.permissions import BUILTIN_PERMISSION_LOCALIZATION_ZH, DEFAULT_PERMISSION_CODES
 from ..database.conn import get_session
 from ..database.entity.models import Menu, Permission, Role, User
 from ..database.repository import rbac_repository as repo
@@ -88,10 +89,15 @@ def seed_rbac(admin_username: str, admin_email: str, admin_password: str) -> dic
             select(Permission).where(Permission.code == code)
         ).scalar_one_or_none()
         if permission is None:
+            localized = BUILTIN_PERMISSION_LOCALIZATION_ZH.get(code)
+            permission_name = localized["name"] if localized else code.replace(":", " ").title()
+            permission_description = (
+                localized["description"] if localized else f"{code} permission"
+            )
             permission = Permission(
-                name=code.replace(":", " ").title(),
+                name=permission_name,
                 code=code,
-                description=f"{code} permission",
+                description=permission_description,
             )
             session.add(permission)
             created_permissions += 1
@@ -140,4 +146,60 @@ def seed_rbac(admin_username: str, admin_email: str, admin_password: str) -> dic
     }
 
 
-__all__ = ["seed_rbac"]
+def _is_permission_table_missing(error: Exception) -> bool:
+    message = str(error).lower()
+    missing_signatures = (
+        "no such table",
+        "doesn't exist",
+        "does not exist",
+        "unknown table",
+    )
+    return any(signature in message for signature in missing_signatures)
+
+
+def sync_builtin_permissions_to_cn() -> dict:
+    session = get_session()
+    try:
+        statement = select(Permission).where(Permission.code.in_(DEFAULT_PERMISSION_CODES))
+        permissions = session.execute(statement).scalars().all()
+        updated_count = 0
+        for permission in permissions:
+            localized = BUILTIN_PERMISSION_LOCALIZATION_ZH.get(permission.code)
+            if localized is None:
+                continue
+
+            changed = False
+            if permission.name != localized["name"]:
+                permission.name = localized["name"]
+                changed = True
+            if permission.description != localized["description"]:
+                permission.description = localized["description"]
+                changed = True
+
+            if changed:
+                updated_count += 1
+
+        if updated_count:
+            session.commit()
+
+        return {
+            "checked": len(permissions),
+            "updated": updated_count,
+        }
+    except SQLAlchemyError as exc:
+        session.rollback()
+        if _is_permission_table_missing(exc):
+            return {
+                "checked": 0,
+                "updated": 0,
+                "skipped": "permissions_table_unavailable",
+            }
+        return {
+            "checked": 0,
+            "updated": 0,
+            "skipped": "sync_error",
+            "error": str(exc),
+        }
+
+
+__all__ = ["seed_rbac", "sync_builtin_permissions_to_cn"]

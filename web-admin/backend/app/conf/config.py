@@ -94,6 +94,10 @@ def apply_env_config(app):
         os.getenv("CELERY_RESULT_BACKEND", app.config["CELERY_BROKER_URL"]),
     )
     app.config.setdefault("CORS_ORIGINS", os.getenv("CORS_ORIGINS", "*"))
+    app.config.setdefault(
+        "PERMISSION_CN_SYNC_ON_STARTUP",
+        _env_bool(_pick_profiled_env("PERMISSION_CN_SYNC_ON_STARTUP", profile), default=True),
+    )
 
     # Database engine options, aligned with create_engine/sessionmaker mode.
     app.config.setdefault(
