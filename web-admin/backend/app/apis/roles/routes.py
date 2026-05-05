@@ -1,9 +1,10 @@
 ﻿from flask import request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restx import Resource
 
 from ...components import ServiceError, fail, ok
 from ...components import require_permission
+from ...service.authz_service import user_has_permission
 from ...service.role_service import (
     assign_role_menus,
     assign_role_permissions,
@@ -127,11 +128,24 @@ class RoleMenuResource(Resource):
     def post(self, role_id):
         payload = request.get_json(silent=True) or {}
         menu_ids = payload.get("menu_ids")
+        permission_ids = payload.get("permission_ids")
         if not isinstance(menu_ids, list):
             return fail(1001, "menu_ids must be a list", status=400)
+        if permission_ids is not None and not isinstance(permission_ids, list):
+            return fail(1001, "permission_ids must be a list", status=400)
+
+        if permission_ids is not None:
+            user_id = get_jwt_identity()
+            try:
+                user_pk = int(user_id)
+            except (TypeError, ValueError):
+                return fail(2001, "unauthorized", status=401)
+
+            if not user_has_permission(user_pk, "role:assign_permission"):
+                return fail(2002, "permission denied", status=403)
 
         try:
-            return ok(assign_role_menus(role_id, menu_ids))
+            return ok(assign_role_menus(role_id, menu_ids, permission_ids=permission_ids))
         except ServiceError as exc:
             return fail(exc.code, exc.msg, status=exc.status, data=exc.data)
 

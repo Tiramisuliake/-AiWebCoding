@@ -95,6 +95,7 @@
       editRole: "编辑角色",
       assignPermissions: "分配权限",
       assignMenus: "分配菜单",
+      assignMenusAndPermissions: "分配菜单及权限",
       roleName: "角色名称",
       description: "描述",
       permissionCount: "权限数量",
@@ -109,6 +110,7 @@
       deleteFailed: "删除角色失败",
       assignFailed: "分配权限失败",
       assignMenuSuccess: "菜单分配已更新",
+      assignMenuPermissionSuccess: "菜单及权限分配成功",
       assignMenuFailed: "分配菜单失败",
       confirmDelete: "确认删除角色“{name}”？"
     },
@@ -292,6 +294,7 @@
       editRole: "Edit Role",
       assignPermissions: "Assign Permissions",
       assignMenus: "Assign Menus",
+      assignMenusAndPermissions: "Assign Menus & Permissions",
       roleName: "Role Name",
       description: "Description",
       permissionCount: "Permissions",
@@ -306,6 +309,7 @@
       deleteFailed: "Delete role failed",
       assignFailed: "Assign permissions failed",
       assignMenuSuccess: "Menus updated",
+      assignMenuPermissionSuccess: "Menus and permissions updated",
       assignMenuFailed: "Assign menus failed",
       confirmDelete: "Delete role \"{name}\"?"
     },

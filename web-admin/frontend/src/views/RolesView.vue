@@ -1,11 +1,10 @@
-﻿<script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+<script setup>
+import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 
 import { useI18n } from "../composables/useI18n";
 import {
   assignRoleMenus,
-  assignRolePermissions,
   createRole,
   deleteRole,
   fetchMenuTree,
@@ -15,6 +14,10 @@ import {
   fetchRoles,
   updateRole
 } from "../api/rbac";
+
+const MENU_NODE_PREFIX = "menu:";
+const PERMISSION_NODE_PREFIX = "permission:";
+const MAX_SEARCH_ITEMS = 5;
 
 const { t } = useI18n();
 const loading = ref(false);
@@ -28,7 +31,6 @@ const pagination = reactive({
 const searchForm = reactive({
   name: []
 });
-const MAX_SEARCH_ITEMS = 5;
 const permissionOptions = ref([]);
 const menuOptions = ref([]);
 
@@ -41,10 +43,6 @@ const roleForm = reactive({
   description: ""
 });
 
-const permissionDialogVisible = ref(false);
-const permissionSubmitting = ref(false);
-const permissionTargetRole = ref(null);
-const permissionSelection = ref([]);
 const menuDialogVisible = ref(false);
 const menuSubmitting = ref(false);
 const menuTargetRole = ref(null);
@@ -108,8 +106,144 @@ function enforceMaxSearchItems(field, values) {
   ElMessage.warning(t("common.maxSearchItems", { count: MAX_SEARCH_ITEMS }));
 }
 
+function menuNodeKey(menuId) {
+  return `${MENU_NODE_PREFIX}${menuId}`;
+}
+
+function permissionNodeKey(menuId, permissionId) {
+  return `${PERMISSION_NODE_PREFIX}${menuId}:${permissionId}`;
+}
+
+function parseMenuIdFromKey(key) {
+  const value = String(key || "");
+  if (!value.startsWith(MENU_NODE_PREFIX)) {
+    return null;
+  }
+  const menuId = Number.parseInt(value.slice(MENU_NODE_PREFIX.length), 10);
+  return Number.isFinite(menuId) ? menuId : null;
+}
+
+function parsePermissionFromKey(key) {
+  const value = String(key || "");
+  if (!value.startsWith(PERMISSION_NODE_PREFIX)) {
+    return null;
+  }
+  const raw = value.slice(PERMISSION_NODE_PREFIX.length);
+  const [menuPart, permissionPart] = raw.split(":");
+  const menuId = Number.parseInt(menuPart, 10);
+  const permissionId = Number.parseInt(permissionPart, 10);
+  if (!Number.isFinite(menuId) || !Number.isFinite(permissionId)) {
+    return null;
+  }
+  return { menuId, permissionId };
+}
+
+function getPermissionPrefix(permissionCode) {
+  const code = String(permissionCode || "").trim();
+  if (!code) {
+    return "";
+  }
+  const [prefix] = code.split(":", 1);
+  return (prefix || "").trim();
+}
+
+function isPermissionCodeUnderPrefix(permissionCode, prefix) {
+  const code = String(permissionCode || "").trim();
+  if (!code || !prefix) {
+    return false;
+  }
+  return code.startsWith(`${prefix}:`);
+}
+
+function buildPermissionNodesForMenu(menu) {
+  const prefix = getPermissionPrefix(menu?.permission_code);
+  if (!prefix) {
+    return [];
+  }
+  const scopedPermissions = permissionOptions.value.filter((permission) =>
+    isPermissionCodeUnderPrefix(permission?.code, prefix)
+  );
+  return scopedPermissions.map((permission) => ({
+    key: permissionNodeKey(menu.id, permission.id),
+    label: formatPermissionLabel(permission),
+    nodeType: "permission",
+    menuId: menu.id,
+    permissionId: permission.id,
+    children: []
+  }));
+}
+
+function buildMenuPermissionTree(nodes) {
+  return (nodes || []).map((menu) => {
+    const childMenus = buildMenuPermissionTree(menu.children || []);
+    const permissionNodes = buildPermissionNodesForMenu(menu);
+    return {
+      key: menuNodeKey(menu.id),
+      label: menu.name,
+      nodeType: "menu",
+      menuId: menu.id,
+      children: [...childMenus, ...permissionNodes]
+    };
+  });
+}
+
+function flattenTree(nodes, acc = []) {
+  for (const node of nodes || []) {
+    acc.push(node);
+    if (node.children?.length) {
+      flattenTree(node.children, acc);
+    }
+  }
+  return acc;
+}
+
+function collectDefaultCheckedPermissionKeys(treeNodes, selectedPermissionIds) {
+  const selectedPermissionSet = new Set(selectedPermissionIds || []);
+  const keys = [];
+  for (const node of flattenTree(treeNodes)) {
+    if (node.nodeType !== "permission") {
+      continue;
+    }
+    if (selectedPermissionSet.has(node.permissionId)) {
+      keys.push(node.key);
+    }
+  }
+  return keys;
+}
+
+function getMenuPermissionSelection() {
+  const checkedKeys = menuTreeRef.value?.getCheckedKeys(false) || [];
+  const halfCheckedKeys = menuTreeRef.value?.getHalfCheckedKeys() || [];
+
+  const menuIds = new Set();
+  const permissionIds = new Set();
+
+  for (const key of [...checkedKeys, ...halfCheckedKeys]) {
+    const menuId = parseMenuIdFromKey(key);
+    if (menuId !== null) {
+      menuIds.add(menuId);
+    }
+  }
+
+  for (const key of checkedKeys) {
+    const parsed = parsePermissionFromKey(key);
+    if (parsed) {
+      permissionIds.add(parsed.permissionId);
+    }
+  }
+
+  return {
+    menuIds: [...menuIds],
+    permissionIds: [...permissionIds]
+  };
+}
+
 const roleNameCandidates = computed(() => {
   return uniqueStrings(items.value.map((item) => item.name));
+});
+
+const menuPermissionTree = computed(() => {
+  return buildMenuPermissionTree(menuOptions.value);
 });
 
 async function loadData() {
@@ -236,59 +370,29 @@ async function removeRole(row) {
   }
 }
 
-async function openPermissionDialog(row) {
-  permissionTargetRole.value = row;
-  permissionSelection.value = [];
-  permissionDialogVisible.value = true;
-  try {
-    const response = await fetchRolePermissions(row.id);
-    if (response.code !== 0) {
-      throw new Error(response.msg || t("roles.assignFailed"));
-    }
-    permissionSelection.value = (response.data.permissions || []).map((item) => item.id);
-  } catch (error) {
-    permissionDialogVisible.value = false;
-    ElMessage.error(normalizeError(error, "roles.assignFailed"));
-  }
-}
-
-async function submitPermissionAssignment() {
-  if (!permissionTargetRole.value) {
-    return;
-  }
-  permissionSubmitting.value = true;
-  try {
-    const response = await assignRolePermissions(
-      permissionTargetRole.value.id,
-      permissionSelection.value
-    );
-    if (response.code !== 0) {
-      throw new Error(response.msg || t("roles.assignFailed"));
-    }
-    showWarnings(response.data);
-    permissionDialogVisible.value = false;
-    ElMessage.success(t("roles.assignSuccess"));
-    await loadData();
-  } catch (error) {
-    ElMessage.error(normalizeError(error, "roles.assignFailed"));
-  } finally {
-    permissionSubmitting.value = false;
-  }
-}
-
 async function openMenuDialog(row) {
   menuTargetRole.value = row;
   menuDialogVisible.value = true;
 
   try {
-    const response = await fetchRoleMenus(row.id);
-    if (response.code !== 0) {
-      throw new Error(response.msg || t("roles.assignMenuFailed"));
+    const [menuResponse, permissionResponse] = await Promise.all([
+      fetchRoleMenus(row.id),
+      fetchRolePermissions(row.id)
+    ]);
+    if (menuResponse.code !== 0) {
+      throw new Error(menuResponse.msg || t("roles.assignMenuFailed"));
     }
-    const checkedIds = (response.data.menus || []).map((item) => item.id);
-    setTimeout(() => {
-      menuTreeRef.value?.setCheckedKeys(checkedIds);
-    });
+    if (permissionResponse.code !== 0) {
+      throw new Error(permissionResponse.msg || t("roles.assignMenuFailed"));
+    }
+
+    const selectedMenuIds = (menuResponse.data.menus || []).map((item) => item.id);
+    const selectedPermissionIds = (permissionResponse.data.permissions || []).map((item) => item.id);
+    const selectedMenuKeys = selectedMenuIds.map((menuId) => menuNodeKey(menuId));
+    const selectedPermissionKeys = collectDefaultCheckedPermissionKeys(menuPermissionTree.value, selectedPermissionIds);
+
+    await nextTick();
+    menuTreeRef.value?.setCheckedKeys([...selectedMenuKeys, ...selectedPermissionKeys]);
   } catch (error) {
     menuDialogVisible.value = false;
     ElMessage.error(normalizeError(error, "roles.assignMenuFailed"));
@@ -301,17 +405,15 @@ async function submitMenuAssignment() {
   }
   menuSubmitting.value = true;
   try {
-    const checkedKeys = menuTreeRef.value?.getCheckedKeys(false) || [];
-    const halfCheckedKeys = menuTreeRef.value?.getHalfCheckedKeys() || [];
-    const menuIds = [...new Set([...checkedKeys, ...halfCheckedKeys])];
-
-    const response = await assignRoleMenus(menuTargetRole.value.id, menuIds);
+    const { menuIds, permissionIds } = getMenuPermissionSelection();
+    const response = await assignRoleMenus(menuTargetRole.value.id, menuIds, permissionIds);
     if (response.code !== 0) {
       throw new Error(response.msg || t("roles.assignMenuFailed"));
     }
     showWarnings(response.data);
     menuDialogVisible.value = false;
-    ElMessage.success(t("roles.assignMenuSuccess"));
+    ElMessage.success(t("roles.assignMenuPermissionSuccess"));
+    await loadData();
   } catch (error) {
     ElMessage.error(normalizeError(error, "roles.assignMenuFailed"));
   } finally {
@@ -366,15 +468,12 @@ onMounted(loadData);
         <el-table-column prop="name" :label="t('roles.roleName')" />
         <el-table-column prop="description" :label="t('roles.description')" />
         <el-table-column prop="permission_count" :label="t('roles.permissionCount')" width="120" />
-        <el-table-column :label="t('common.actions')" width="420" fixed="right">
+        <el-table-column :label="t('common.actions')" width="380" fixed="right">
           <template #default="{ row }">
             <el-space>
               <el-button link type="primary" @click="openEditDialog(row)">{{ t("common.edit") }}</el-button>
-              <el-button link type="warning" @click="openPermissionDialog(row)">
-                {{ t("common.assign") }}
-              </el-button>
               <el-button link type="success" @click="openMenuDialog(row)">
-                {{ t("roles.assignMenus") }}
+                {{ t("roles.assignMenusAndPermissions") }}
               </el-button>
               <el-button link type="danger" @click="removeRole(row)">{{ t("common.delete") }}</el-button>
             </el-space>
@@ -414,48 +513,17 @@ onMounted(loadData);
     </el-dialog>
 
     <el-dialog
-      v-model="permissionDialogVisible"
-      :title="`${t('roles.assignPermissions')} - ${permissionTargetRole?.name || ''}`"
-      width="620px"
-    >
-      <el-select
-        v-model="permissionSelection"
-        multiple
-        filterable
-        :placeholder="t('roles.selectPermissions')"
-        style="width: 100%"
-      >
-        <el-option
-          v-for="permission in permissionOptions"
-          :key="permission.id"
-          :label="formatPermissionLabel(permission)"
-          :value="permission.id"
-        />
-      </el-select>
-      <template #footer>
-        <el-button @click="permissionDialogVisible = false">{{ t("common.cancel") }}</el-button>
-        <el-button
-          type="primary"
-          :loading="permissionSubmitting"
-          @click="submitPermissionAssignment"
-        >
-          {{ t("common.save") }}
-        </el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog
       v-model="menuDialogVisible"
-      :title="`${t('roles.assignMenus')} - ${menuTargetRole?.name || ''}`"
-      width="620px"
+      :title="`${t('roles.assignMenusAndPermissions')} - ${menuTargetRole?.name || ''}`"
+      width="760px"
     >
       <el-tree
         ref="menuTreeRef"
-        :data="menuOptions"
-        node-key="id"
+        :data="menuPermissionTree"
+        node-key="key"
         show-checkbox
         default-expand-all
-        :props="{ label: 'name', children: 'children' }"
+        :props="{ label: 'label', children: 'children' }"
       />
       <template #footer>
         <el-button @click="menuDialogVisible = false">{{ t("common.cancel") }}</el-button>
@@ -551,4 +619,3 @@ onMounted(loadData);
   }
 }
 </style>
-

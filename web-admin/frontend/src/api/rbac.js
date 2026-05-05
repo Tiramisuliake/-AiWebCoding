@@ -72,10 +72,14 @@ export async function fetchRoleMenus(roleId) {
   return data;
 }
 
-export async function assignRoleMenus(roleId, menuIds) {
-  const { data } = await http.post(`/roles/${roleId}/menus`, {
+export async function assignRoleMenus(roleId, menuIds, permissionIds) {
+  const payload = {
     menu_ids: menuIds
-  });
+  };
+  if (Array.isArray(permissionIds)) {
+    payload.permission_ids = permissionIds;
+  }
+  const { data } = await http.post(`/roles/${roleId}/menus`, payload);
   return data;
 }
 

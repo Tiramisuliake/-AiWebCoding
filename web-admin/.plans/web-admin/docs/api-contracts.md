@@ -216,6 +216,25 @@ Request:
 ```
 行为：覆盖写（完整替换该角色权限集合）。
 
+### GET /api/roles/{id}/menus
+返回角色菜单明细。
+
+### POST /api/roles/{id}/menus
+Request（兼容两种模式）:
+```json
+{ "menu_ids": [1, 2, 3] }
+```
+或
+```json
+{ "menu_ids": [1, 2, 3], "permission_ids": [11, 12] }
+```
+
+行为：
+- 仅 `menu_ids`：保持原有菜单覆盖写；
+- 携带 `permission_ids`：同请求内同时覆盖写角色菜单与角色权限（单事务）；
+- 携带 `permission_ids` 时，需同时具备 `role:assign_menu` 与 `role:assign_permission`；
+- 若 `permission_ids` 超出本次 `menu_ids` 可管辖权限范围，返回 `400 + code=1001` 且不落库。
+
 ## Permissions API（权限管理）
 
 所有端点需 `@jwt_required()`，并进行 `permission:*` 权限检查。
