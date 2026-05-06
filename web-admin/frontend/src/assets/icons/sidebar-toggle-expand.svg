@@ -1,0 +1,17 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sidebarExpandMain" x1="3" y1="4" x2="21" y2="20" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22D3EE"/>
+      <stop offset="0.55" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+    <linearGradient id="sidebarExpandStroke" x1="10" y1="6.5" x2="20" y2="16.5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="3.5" y="4.25" width="4.25" height="15.5" rx="2.125" fill="url(#sidebarExpandMain)"/>
+  <path d="M11.25 7.5H19.5M13.5 12H19.5M11.25 16.5H19.5" stroke="url(#sidebarExpandStroke)" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M12.05 9.4L14.65 12L12.05 14.6" stroke="url(#sidebarExpandMain)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

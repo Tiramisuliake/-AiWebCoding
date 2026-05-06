@@ -1,11 +1,14 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import Sortable from "sortablejs";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { useI18n } from "../composables/useI18n";
 import { useAuthStore } from "../stores/auth";
 import { useMenuStore } from "../stores/menu";
 import { useTabsStore } from "../stores/tabs";
+import sidebarToggleCollapseIcon from "../assets/icons/sidebar-toggle-collapse.svg";
+import sidebarToggleExpandIcon from "../assets/icons/sidebar-toggle-expand.svg";
 
 const authStore = useAuthStore();
 const menuStore = useMenuStore();
@@ -15,8 +18,12 @@ const router = useRouter();
 const menuOpen = ref(false);
 const sidebarCollapsed = ref(false);
 const expandedGroupKeys = ref([]);
+const tabsRef = ref(null);
+const tabScrollRef = ref(null);
+const tabsHydrated = ref(false);
 const { t } = useI18n();
 const SIDEBAR_COLLAPSED_KEY = "web_admin_sidebar_collapsed";
+let tabsSortable = null;
 
 const navItems = computed(() => menuStore.userMenuTree || []);
 const menuTitleKeyMap = Object.freeze({
@@ -32,6 +39,24 @@ const currentTitle = computed(() => {
 });
 
 const displayName = computed(() => authStore.user?.username || t("common.unknown"));
+
+const menuToggleIcon = computed(() => {
+  if (window.innerWidth <= 900) {
+    return menuOpen.value ? sidebarToggleCollapseIcon : sidebarToggleExpandIcon;
+  }
+  return sidebarCollapsed.value ? sidebarToggleExpandIcon : sidebarToggleCollapseIcon;
+});
+
+const menuToggleLabel = computed(() => {
+  if (window.innerWidth <= 900) {
+    return menuOpen.value ? "收起侧边栏" : "展开侧边栏";
+  }
+  return sidebarCollapsed.value ? "展开侧边栏" : "收起侧边栏";
+});
+
+if (menuStore.loaded) {
+  hydrateTabsState();
+}
 
 watch(
   () => route.fullPath,
@@ -49,13 +74,22 @@ watch(
   navItems,
   () => {
     syncExpandedGroupsWithRoute();
+    sanitizePersistedTabsWithPermission();
   },
   { deep: true }
 );
 
 onMounted(() => {
+  hydrateTabsState();
   const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
   sidebarCollapsed.value = stored === "1";
+  nextTick(() => {
+    initTabsSortable();
+  });
+});
+
+onUnmounted(() => {
+  destroyTabsSortable();
 });
 
 async function onLogout() {
@@ -205,6 +239,103 @@ function onTabCommand(command) {
     router.push(nextPath);
   }
 }
+
+function normalizePathForPermission(path) {
+  if (typeof path !== "string") {
+    return "";
+  }
+  return path.trim().split("#")[0].split("?")[0] || "";
+}
+
+function canAccessTabPath(path) {
+  const normalizedPath = normalizePathForPermission(path);
+  return normalizedPath ? menuStore.hasPath(normalizedPath) : false;
+}
+
+function hydrateTabsState() {
+  if (tabsHydrated.value) {
+    return;
+  }
+  tabsStore.hydrateTabs({ canAccessPath: canAccessTabPath });
+  tabsHydrated.value = true;
+}
+
+function sanitizePersistedTabsWithPermission() {
+  if (!tabsHydrated.value || !menuStore.loaded) {
+    return;
+  }
+  tabsStore.sanitizeTabs({ canAccessPath: canAccessTabPath });
+}
+
+function getTabsNavElement() {
+  const exposedTabList = tabsRef.value?.tabNavRef?.tabListRef;
+  if (exposedTabList instanceof HTMLElement) {
+    return exposedTabList;
+  }
+
+  const fallbackByRef = tabsRef.value?.$el?.querySelector?.(".el-tabs__nav");
+  if (fallbackByRef instanceof HTMLElement) {
+    return fallbackByRef;
+  }
+
+  const fallbackByContainer = tabScrollRef.value?.querySelector?.(".el-tabs__nav");
+  if (fallbackByContainer instanceof HTMLElement) {
+    return fallbackByContainer;
+  }
+
+  return null;
+}
+
+function ensureDragItemVisible(draggedElement) {
+  if (!(draggedElement instanceof HTMLElement)) {
+    return;
+  }
+  draggedElement.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest",
+    inline: "nearest"
+  });
+}
+
+function destroyTabsSortable() {
+  if (tabsSortable) {
+    tabsSortable.destroy();
+    tabsSortable = null;
+  }
+}
+
+function initTabsSortable() {
+  destroyTabsSortable();
+
+  const tabNav = getTabsNavElement();
+  if (!(tabNav instanceof HTMLElement)) {
+    return;
+  }
+
+  tabsSortable = Sortable.create(tabNav, {
+    animation: 180,
+    direction: "horizontal",
+    draggable: ".el-tabs__item.is-closable",
+    ghostClass: "tab-drag-ghost",
+    chosenClass: "tab-drag-chosen",
+    dragClass: "tab-drag-dragging",
+    scroll: true,
+    scrollSensitivity: 80,
+    scrollSpeed: 14,
+    bubbleScroll: true,
+    onEnd: (event) => {
+      const from = event.oldDraggableIndex;
+      const to = event.newDraggableIndex;
+
+      if (from == null || to == null || from === to) {
+        return;
+      }
+
+      tabsStore.reorderClosableTabs(from, to);
+      ensureDragItemVisible(event.item);
+    }
+  });
+}
 </script>
 
 <template>
@@ -259,10 +390,14 @@ function onTabCommand(command) {
     <div class="layout-main">
       <header class="topbar">
         <div class="title-wrap">
-          <button class="menu-toggle" @click="onSidebarToggle">
-            <span></span>
-            <span></span>
-            <span></span>
+          <button
+            class="menu-toggle"
+            type="button"
+            :aria-label="menuToggleLabel"
+            :title="menuToggleLabel"
+            @click="onSidebarToggle"
+          >
+            <img class="menu-toggle-icon" :src="menuToggleIcon" alt="" />
           </button>
           <div>
             <h1 class="page-title">{{ currentTitle }}</h1>
@@ -276,8 +411,9 @@ function onTabCommand(command) {
       </header>
 
       <section class="tabbar">
-        <div class="tab-scroll">
+        <div ref="tabScrollRef" class="tab-scroll">
           <el-tabs
+            ref="tabsRef"
             v-model="tabsStore.activeName"
             type="card"
             class="tabs"
@@ -332,15 +468,18 @@ function onTabCommand(command) {
 
 <style scoped>
 .layout-shell {
+  --sidebar-expanded-width: var(--aside-width);
+  --sidebar-collapsed-width: 78px;
+  --sidebar-current-width: var(--sidebar-expanded-width);
   min-height: 100vh;
   display: grid;
-  grid-template-columns: var(--aside-width) 1fr;
+  grid-template-columns: var(--sidebar-current-width) 1fr;
   background: linear-gradient(155deg, #f8fafc 0%, #eef2ff 100%);
-  transition: grid-template-columns 0.2s ease;
+  transition: grid-template-columns 0.22s ease;
 }
 
 .layout-shell.sidebar-collapsed {
-  grid-template-columns: 78px 1fr;
+  --sidebar-current-width: var(--sidebar-collapsed-width);
 }
 
 .sidebar {
@@ -521,6 +660,11 @@ function onTabCommand(command) {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
+}
+
+.title-wrap > div {
+  min-width: 0;
 }
 
 .page-title {
@@ -536,25 +680,43 @@ function onTabCommand(command) {
 }
 
 .menu-toggle {
+  appearance: none;
+  -webkit-appearance: none;
   width: 34px;
   height: 34px;
   border: 0;
-  background: rgba(148, 163, 184, 0.18);
-  border-radius: var(--radius-base);
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border-radius: 10px;
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  gap: 3px;
-  flex-direction: column;
   cursor: pointer;
+  transition: background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.menu-toggle span {
+.menu-toggle:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.menu-toggle:active {
+  background: rgba(37, 99, 235, 0.2);
+  transform: translateY(1px);
+}
+
+.menu-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.28);
+}
+
+.menu-toggle-icon {
   display: block;
-  width: 15px;
-  height: 2px;
-  background: #0f172a;
-  border-radius: 99px;
+  width: 24px;
+  height: 24px;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.24));
 }
 
 .topbar-right {
@@ -575,6 +737,22 @@ function onTabCommand(command) {
 
 .tab-scroll {
   min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+.tab-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tab-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.55);
+}
+
+.tab-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .tab-tools {
@@ -601,6 +779,34 @@ function onTabCommand(command) {
 .tabs :deep(.el-tabs__item) {
   height: 34px;
   line-height: 34px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tabs :deep(.el-tabs__nav-wrap) {
+  overflow: visible;
+}
+
+.tabs :deep(.el-tabs__nav-scroll) {
+  overflow: visible;
+}
+
+.tabs :deep(.tab-drag-ghost) {
+  opacity: 0.38;
+  border-style: dashed;
+  border-color: rgba(37, 99, 235, 0.55);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.tabs :deep(.tab-drag-chosen) {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.tabs :deep(.tab-drag-dragging) {
+  opacity: 0.82;
+  transform: scale(1.03);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 
 .content {
