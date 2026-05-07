@@ -1,28 +1,28 @@
 # /next
 
-## Purpose
+## 用途
 
-Suggest the next useful work item.
+建议下一项最有价值的工作。
 
-## Read First
+## 先读
 
 1. `docs/project-state.md`
 2. `docs/todos.md`
 3. `docs/business-module-guide.md`
-4. Current `git status --short`
+4. 当前 `git status --short`
 
-## Steps
+## 步骤
 
-1. Determine whether the workspace has unfinished changes.
-2. Review open todos and current project phase.
-3. Prioritize work that unlocks business development or reduces documentation/code drift.
-4. Recommend one primary next task and up to two alternatives.
+1. 判断工作区是否有未完成改动。
+2. 查看开放待办和当前项目阶段。
+3. 优先选择能推进业务开发或减少文档/代码漂移的工作。
+4. 推荐一个主要下一步，并最多给出两个备选。
 
-## Output
+## 输出
 
-Return:
+返回：
 
-- Recommended next task.
-- Why it matters.
-- Files/docs to start with.
-- Acceptance criteria for that task.
+- 推荐下一项任务。
+- 为什么它重要。
+- 开始时应阅读的文件/文档。
+- 该任务的验收标准。

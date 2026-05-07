@@ -1,13 +1,13 @@
-# .plans Archive
+# .plans 归档说明
 
-Current project documentation lives in:
+当前项目文档请阅读：
 
 - `../AGENTS.md`
 - `../docs/index.md`
 - `../docs/project-state.md`
 
-This directory is retained for historical planning material only. Archived files may describe old project state and should not be used as current implementation guidance.
+本目录仅保留历史计划材料。归档文件可能描述旧项目状态，不能作为当前实现依据。
 
-Historical files are stored under:
+历史文件位置：
 
 - `.plans/archive/2026-04-12-team-bootstrap/`

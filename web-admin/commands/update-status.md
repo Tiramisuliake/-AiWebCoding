@@ -1,28 +1,28 @@
 # /update-status
 
-## Purpose
+## 用途
 
-Update project status and todo tracking after meaningful work.
+在完成有意义的工作后，更新项目状态和待办。
 
-## Read First
+## 先读
 
 1. `docs/project-state.md`
 2. `docs/todos.md`
-3. Changed files and recent check results.
+3. 当前变更文件和最近检查结果。
 
-## Steps
+## 步骤
 
-1. Identify what changed and whether it is complete.
-2. Update `docs/project-state.md` when project capabilities or phase changed.
-3. Update `docs/todos.md` by marking completed tasks or adding follow-ups.
-4. Add acceptance record if a user-facing workflow was validated.
-5. Keep wording factual and dated.
+1. 判断发生了什么变化，以及是否已经完成。
+2. 当项目能力或阶段变化时，更新 `docs/project-state.md`。
+3. 在 `docs/todos.md` 中关闭已完成任务或新增后续事项。
+4. 如果用户可见流程已验证，增加验收记录。
+5. 使用事实化、带日期的描述。
 
-## Output
+## 输出
 
-Return:
+返回：
 
-- Status fields changed.
-- Todos added/closed.
-- Acceptance record path if created.
-- Remaining follow-up.
+- 已更新的状态字段。
+- 新增/关闭的待办。
+- 验收记录路径。
+- 剩余后续事项。

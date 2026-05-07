@@ -1,35 +1,35 @@
-# System Invariants
+# 系统不变量
 
-Violating these boundaries is a critical bug.
+违反以下边界都属于严重缺陷。
 
-## Security
+## 安全
 
-- All non-public API endpoints require JWT.
-- Permissioned resources require the matching RBAC permission.
-- Passwords are stored as bcrypt hashes, never plaintext.
-- JWT secrets and database credentials come from environment/config, not source code.
-- Revoked access and refresh tokens must be rejected.
+- 所有非公开 API 都必须要求 JWT。
+- 受权限保护的资源必须检查对应 RBAC 权限。
+- 密码必须以 bcrypt 哈希存储，不能明文存储。
+- JWT 密钥和数据库凭证来自环境变量或配置文件，不能写死在源码中。
+- 已撤销的 access token 和 refresh token 必须被拒绝。
 
-## API Contracts
+## API 契约
 
-- API responses use the unified response shape.
-- Business validation errors use stable business error codes.
-- Frontend API clients must match `docs/api-contracts.md`.
+- API 响应必须使用统一响应格式。
+- 业务校验错误必须使用稳定的业务错误码。
+- 前端 API client 必须与 `docs/api-contracts.md` 保持一致。
 
-## Data And Persistence
+## 数据与持久化
 
-- Database operations use SQLAlchemy ORM and configured sessions.
-- Request-scoped sessions are removed at teardown.
-- Menu tree construction must handle malformed or cyclic data safely.
-- Destructive operations must respect service-layer association rules.
+- 数据库操作必须使用 SQLAlchemy ORM 和配置好的 session。
+- 请求级 session 必须在 teardown 阶段清理。
+- 菜单树构建必须安全处理异常或循环数据。
+- 删除操作必须遵守 service 层的关联约束规则。
 
-## Frontend Access
+## 前端访问控制
 
-- Authenticated pages are guarded by login state.
-- Menu-backed routes are constrained by `/api/menus/my-tree`.
-- Tab persistence must sanitize inaccessible routes after permission changes.
+- 认证页面必须受登录状态保护。
+- 菜单驱动的路由必须受 `/api/menus/my-tree` 约束。
+- 权限变化后，标签页持久化状态必须能清理不可访问路由。
 
-## Documentation
+## 文档
 
-- API, permission, menu, and architecture changes update the matching document in `docs/`.
-- Historical archive files must not be used as current implementation guidance.
+- API、权限、菜单、架构变化必须更新 `docs/` 中对应文档。
+- 历史归档文件不能作为当前实现指导。

@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-This file is kept only for compatibility with tools that look for it.
+此文件仅用于兼容仍会查找 `CLAUDE.md` 的工具。
 
-The current project rules live in:
+当前项目规则请阅读：
 
 - `AGENTS.md`
 - `docs/index.md`
 - `backend/AGENTS.md`
 - `frontend/AGENTS.md`
 
-The old fixed-role workflow is retired. Use the Subagent Policy in `AGENTS.md` for bounded parallel work, and use `docs/` as the current documentation source.
+旧的固定团队协作流程已经废弃。需要并行处理独立任务时，使用 `AGENTS.md` 中的 Subagent 使用规则；当前项目文档以 `docs/` 为准。

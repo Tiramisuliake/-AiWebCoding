@@ -1,41 +1,41 @@
-# API Contracts
+# API 契约
 
-## Common Rules
+## 通用规则
 
-- Base prefix: `/api`
-- Swagger UI: `/api/docs`
-- Health check: `/health`
-- Protected endpoints use JWT access tokens unless noted.
-- Refresh uses a JWT refresh token.
+- 基础前缀：`/api`
+- Swagger UI：`/api/docs`
+- 健康检查：`/health`
+- 除特别说明外，受保护接口使用 access token。
+- 刷新接口使用 refresh token。
 
-Success response:
+成功响应：
 
 ```json
 { "code": 0, "data": {}, "msg": "ok" }
 ```
 
-Common error codes:
+常用错误码：
 
-| Code | Meaning |
+| 错误码 | 含义 |
 |---|---|
-| `1001` | Parameter validation failed |
-| `1002` | Resource not found |
-| `1003` | Unique/conflict error |
-| `2001` | Authentication failed |
-| `2002` | Permission denied |
-| `5001` | Internal server error |
+| `1001` | 参数校验失败 |
+| `1002` | 资源不存在 |
+| `1003` | 唯一键或数据冲突 |
+| `2001` | 认证失败 |
+| `2002` | 权限不足 |
+| `5001` | 服务端内部错误 |
 
-## Auth
+## 认证 Auth
 
 ### `POST /api/auth/login`
 
-Request:
+请求：
 
 ```json
 { "username": "admin", "password": "password123" }
 ```
 
-Response data:
+响应 `data`：
 
 ```json
 {
@@ -47,47 +47,47 @@ Response data:
 
 ### `POST /api/auth/logout`
 
-Requires access token.
+需要 access token。
 
-Request:
+请求：
 
 ```json
 { "refresh_token": "string" }
 ```
 
-Behavior: revokes current access token and matching refresh token.
+行为：撤销当前 access token 和匹配的 refresh token。
 
 ### `POST /api/auth/refresh`
 
-Requires refresh token in `Authorization: Bearer <refresh_token>`.
+需要在 `Authorization: Bearer <refresh_token>` 中传 refresh token。
 
-Response data:
+响应 `data`：
 
 ```json
 { "access_token": "string" }
 ```
 
-## Users
+## 用户 Users
 
-All user endpoints require JWT and the matching `user:*` permission.
+所有用户接口都需要 JWT 和对应 `user:*` 权限。
 
 ### `GET /api/users`
 
-Permission: `user:list`
+权限：`user:list`
 
-Query:
+查询参数：
 
-| Name | Type | Notes |
+| 参数 | 类型 | 说明 |
 |---|---|---|
-| `page` | int | default `1`, min `1` |
-| `per_page` | int | default `20`, max `100` |
-| `keyword` | string | fuzzy username/email search |
-| `username` | string | comma-separated terms, max 5 |
-| `email` | string | comma-separated terms, max 5 |
-| `role` | string | comma-separated terms, max 5 |
-| `is_active` | bool | optional |
+| `page` | int | 默认 `1`，最小 `1` |
+| `per_page` | int | 默认 `20`，最大 `100` |
+| `keyword` | string | 用户名/邮箱模糊搜索 |
+| `username` | string | 逗号分隔搜索词，最多 5 个 |
+| `email` | string | 逗号分隔搜索词，最多 5 个 |
+| `role` | string | 逗号分隔搜索词，最多 5 个 |
+| `is_active` | bool | 可选 |
 
-Response data:
+响应 `data`：
 
 ```json
 {
@@ -111,9 +111,9 @@ Response data:
 
 ### `POST /api/users`
 
-Permission: `user:create`
+权限：`user:create`
 
-Request:
+请求：
 
 ```json
 {
@@ -127,67 +127,67 @@ Request:
 
 ### `GET /api/users/{user_id}`
 
-Permission: `user:read`
+权限：`user:read`
 
-Returns a single user detail.
+返回单个用户详情。
 
 ### `PUT /api/users/{user_id}`
 
-Permission: `user:update`
+权限：`user:update`
 
-Request fields are partial. Supported fields include `email`, `password`, `is_active`, and role-related fields handled by service validation.
+支持部分字段更新，常见字段包括 `email`、`password`、`is_active`。
 
 ### `DELETE /api/users/{user_id}`
 
-Permission: `user:delete`
+权限：`user:delete`
 
-Deletes a user and returns `data: null`.
+删除用户，成功时返回 `data: null`。
 
 ### `GET /api/users/{user_id}/roles`
 
-Permission: `user:read`
+权限：`user:read`
 
-Returns assigned roles.
+返回用户已分配角色。
 
 ### `POST /api/users/{user_id}/roles`
 
-Permission: `user:assign_role`
+权限：`user:assign_role`
 
-Request:
+请求：
 
 ```json
 { "role_ids": [1, 2] }
 ```
 
-Behavior: applies valid role ids and reports invalid ids/warnings.
+行为：应用有效角色 id，并返回无效 id 与 warnings。
 
 ### `DELETE /api/users/{user_id}/roles/{role_id}`
 
-Permission: `user:assign_role`
+权限：`user:assign_role`
 
-Removes one role from the user.
+移除用户的单个角色。
 
-## Roles
+## 角色 Roles
 
-All role endpoints require JWT and the matching `role:*` permission.
+所有角色接口都需要 JWT 和对应 `role:*` 权限。
 
 ### `GET /api/roles`
 
-Permission: `role:list`
+权限：`role:list`
 
-Query:
+查询参数：
 
-| Name | Type | Notes |
+| 参数 | 类型 | 说明 |
 |---|---|---|
-| `page` | int | default `1`, min `1` |
-| `per_page` | int | default `20`, max `100` |
-| `name` | string | comma-separated terms, max 5 |
+| `page` | int | 默认 `1`，最小 `1` |
+| `per_page` | int | 默认 `20`，最大 `100` |
+| `name` | string | 逗号分隔搜索词，最多 5 个 |
 
 ### `POST /api/roles`
 
-Permission: `role:create`
+权限：`role:create`
 
-Request:
+请求：
 
 ```json
 {
@@ -199,110 +199,110 @@ Request:
 
 ### `GET /api/roles/{role_id}`
 
-Permission: `role:read`
+权限：`role:read`
 
-Returns role detail.
+返回角色详情。
 
 ### `PUT /api/roles/{role_id}`
 
-Permission: `role:update`
+权限：`role:update`
 
-Request fields are partial; commonly `name` and `description`.
+支持部分字段更新，常见字段为 `name` 和 `description`。
 
 ### `DELETE /api/roles/{role_id}`
 
-Permission: `role:delete`
+权限：`role:delete`
 
-Deletes a role when service rules allow it.
+按 service 规则删除角色。
 
 ### `GET /api/roles/{role_id}/permissions`
 
-Permission: `role:read`
+权限：`role:read`
 
-Returns role permissions.
+返回角色权限。
 
 ### `POST /api/roles/{role_id}/permissions`
 
-Permission: `role:assign_permission`
+权限：`role:assign_permission`
 
-Request:
+请求：
 
 ```json
 { "permission_ids": [1, 2, 3] }
 ```
 
-Behavior: applies valid permission ids and reports invalid ids/warnings.
+行为：应用有效权限 id，并返回无效 id 与 warnings。
 
 ### `GET /api/roles/{role_id}/menus`
 
-Permission: `role:read`
+权限：`role:read`
 
-Returns role menus.
+返回角色菜单。
 
 ### `POST /api/roles/{role_id}/menus`
 
-Permission: `role:assign_menu`
+权限：`role:assign_menu`
 
-Request:
+请求：
 
 ```json
 { "menu_ids": [1, 2, 3] }
 ```
 
-Or:
+或：
 
 ```json
 { "menu_ids": [1, 2, 3], "permission_ids": [11, 12] }
 ```
 
-Behavior:
+行为：
 
-- `menu_ids` only: update role menu assignment.
-- With `permission_ids`: requires both `role:assign_menu` and `role:assign_permission`.
-- With `permission_ids`: submitted permissions must be within the selected menu permission scope.
-- Out-of-scope permissions return `400` with code `1001` and do not write menus or permissions.
+- 只传 `menu_ids`：更新角色菜单分配。
+- 同时传 `permission_ids`：除 `role:assign_menu` 外，还需要 `role:assign_permission`。
+- 同时传 `permission_ids`：权限必须在所选菜单可管辖范围内。
+- 权限越界时返回 `400` 和 code `1001`，并且不写入菜单或权限。
 
-## Permissions
+## 权限 Permissions
 
-All permission endpoints require JWT and matching `permission:*` permission.
+所有权限接口都需要 JWT 和对应 `permission:*` 权限。
 
 ### `GET /api/permissions`
 
-Permission: `permission:list`
+权限：`permission:list`
 
-Query:
+查询参数：
 
-| Name | Type | Notes |
+| 参数 | 类型 | 说明 |
 |---|---|---|
-| `page` | int | optional; if omitted, returns all |
-| `per_page` | int | optional, max `100` |
-| `name` | string | comma-separated terms, max 5 |
-| `code` | string | comma-separated terms, max 5 |
-| `description` | string | comma-separated terms, max 5 |
+| `page` | int | 可选；不传则返回全部 |
+| `per_page` | int | 可选，最大 `100` |
+| `name` | string | 逗号分隔搜索词，最多 5 个 |
+| `code` | string | 逗号分隔搜索词，最多 5 个 |
+| `description` | string | 逗号分隔搜索词，最多 5 个 |
 
 ### `GET /api/permissions/{permission_id}`
 
-Permission: `permission:read`
+权限：`permission:read`
 
-Returns permission detail.
+返回权限详情。
 
-## Menus
+## 菜单 Menus
 
-All menu management endpoints require JWT and matching `menu:*` permission. `/api/menus/my-tree` requires only JWT.
+菜单管理接口需要 JWT 和对应 `menu:*` 权限。`/api/menus/my-tree` 只需要 JWT。
 
 ### `GET /api/menus`
 
-Permission: `menu:list`
+权限：`menu:list`
 
-Query:
+查询参数：
 
-| Name | Type | Notes |
+| 参数 | 类型 | 说明 |
 |---|---|---|
-| `include_hidden` | bool | default `true` |
-| `include_disabled` | bool | default `true` |
-| `name` | string | comma-separated terms, max 5 |
+| `include_hidden` | bool | 默认 `true` |
+| `include_disabled` | bool | 默认 `true` |
+| `name` | string | 逗号分隔搜索词，最多 5 个 |
 
-Response data:
+响应 `data`：
 
 ```json
 { "items": [{ "id": 1, "name": "仪表盘", "children": [] }] }
@@ -310,9 +310,9 @@ Response data:
 
 ### `POST /api/menus`
 
-Permission: `menu:create`
+权限：`menu:create`
 
-Request:
+请求：
 
 ```json
 {
@@ -329,27 +329,27 @@ Request:
 
 ### `GET /api/menus/my-tree`
 
-Requires JWT.
+需要 JWT。
 
-Behavior:
+行为：
 
-- Admin users receive all visible and enabled menus.
-- Other users receive visible and enabled menus assigned through their roles.
+- admin 用户返回全部可见且启用的菜单。
+- 非 admin 用户返回其角色授权下可见且启用的菜单。
 
 ### `GET /api/menus/{menu_id}`
 
-Permission: `menu:read`
+权限：`menu:read`
 
-Returns menu detail.
+返回菜单详情。
 
 ### `PUT /api/menus/{menu_id}`
 
-Permission: `menu:update`
+权限：`menu:update`
 
-Partial update. Parent changes must not create cycles.
+支持部分字段更新。父级变更不能产生循环。
 
 ### `DELETE /api/menus/{menu_id}`
 
-Permission: `menu:delete`
+权限：`menu:delete`
 
-Deletes a menu when service rules allow it.
+按 service 规则删除菜单。

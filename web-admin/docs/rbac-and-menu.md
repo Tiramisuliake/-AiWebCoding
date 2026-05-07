@@ -1,8 +1,8 @@
-# RBAC And Menu Rules
+# RBAC 与菜单规则
 
-## Data Model
+## 数据模型
 
-Current RBAC and navigation tables:
+当前 RBAC 与导航相关表：
 
 - `users`
 - `roles`
@@ -13,68 +13,68 @@ Current RBAC and navigation tables:
 - `role_menus`
 - `token_blocklist`
 
-`users`, `roles`, `permissions`, and `menus` are ORM entities. The three join tables model many-to-many grants. `token_blocklist` stores revoked token ids.
+`users`、`roles`、`permissions`、`menus` 是 ORM 实体。三个关联表用于表达多对多授权关系。`token_blocklist` 存储已撤销的 token id。
 
-## Permission Codes
+## 权限码
 
-Built-in permission codes currently include:
+当前内置权限码包括：
 
-- `user:list`, `user:read`, `user:create`, `user:update`, `user:delete`, `user:assign_role`
-- `role:list`, `role:read`, `role:create`, `role:update`, `role:delete`, `role:assign_permission`, `role:assign_menu`
-- `permission:list`, `permission:read`
-- `menu:list`, `menu:read`, `menu:create`, `menu:update`, `menu:delete`
+- `user:list`、`user:read`、`user:create`、`user:update`、`user:delete`、`user:assign_role`
+- `role:list`、`role:read`、`role:create`、`role:update`、`role:delete`、`role:assign_permission`、`role:assign_menu`
+- `permission:list`、`permission:read`
+- `menu:list`、`menu:read`、`menu:create`、`menu:update`、`menu:delete`
 
-When adding a business module, use the same `module:action` pattern, for example `order:list`, `order:read`, `order:create`, `order:update`, `order:delete`.
+新增业务模块时，沿用 `module:action` 命名方式，例如 `order:list`、`order:read`、`order:create`、`order:update`、`order:delete`。
 
-## Authorization Semantics
+## 授权语义
 
-- Protected routes require JWT.
-- Permissioned routes require `@require_permission("module:action")`.
-- Users with the `admin` role are allowed by the authz service.
-- Non-admin users receive permissions through roles.
-- Role permission assignment accepts valid ids and reports invalid ids/warnings.
+- 受保护路由必须有 JWT。
+- 需要权限的路由必须使用 `@require_permission("module:action")`。
+- 拥有 `admin` 角色的用户由 authz service 放行。
+- 非 admin 用户通过角色获得权限。
+- 角色权限分配会应用有效 id，并返回无效 id 与 warnings。
 
-## Menu Semantics
+## 菜单语义
 
-- Menus are hierarchical through `parent_id`.
-- `route_path` links backend menu records to frontend routes.
-- `permission_code` links a menu to the permission needed for that page or feature.
-- `/api/menus/my-tree` filters hidden or disabled menus.
-- Admin users receive all visible and enabled menus.
-- Non-admin users receive menus granted to their roles.
-- Menu tree builders must guard against cycle data.
+- 菜单通过 `parent_id` 形成层级。
+- `route_path` 连接后端菜单记录和前端路由。
+- `permission_code` 连接菜单与访问该页面或功能所需的权限。
+- `/api/menus/my-tree` 会过滤隐藏或禁用菜单。
+- admin 用户获取全部可见且启用的菜单。
+- 非 admin 用户获取其角色授权的菜单。
+- 菜单树构建必须安全处理循环数据。
 
-## Combined Role Menu And Permission Assignment
+## 角色菜单与权限联动分配
 
-`POST /api/roles/{role_id}/menus` supports updating menus and, optionally, permissions in one request.
+`POST /api/roles/{role_id}/menus` 支持在同一次请求中更新菜单，并可选更新权限。
 
-Rules:
+规则：
 
-- `menu_ids` is required.
-- `permission_ids` is optional.
-- Including `permission_ids` requires `role:assign_permission` in addition to `role:assign_menu`.
-- Included permissions must belong to the selected menus' manageable scope.
-- If permission scope validation fails, no menu or permission update is written.
+- `menu_ids` 必填。
+- `permission_ids` 可选。
+- 传入 `permission_ids` 时，除 `role:assign_menu` 外还需要 `role:assign_permission`。
+- 传入的权限必须属于所选菜单可管辖范围。
+- 权限范围校验失败时，不写入菜单和权限。
 
-## Chinese-First Localization
+## 中文优先本地化
 
-Permissions and menus are Chinese-first in admin UI:
+权限和菜单在管理后台中中文优先展示：
 
-- Permission list displays Chinese name plus a separate permission-code column.
-- Assignment dialogs should display `中文权限名（permission:code）`.
-- Menu names should default to Chinese.
-- Permission codes remain stable technical identifiers.
+- 权限列表展示中文名，并用独立列展示权限码。
+- 分配弹窗推荐展示 `中文权限名（permission:code）`。
+- 菜单名称默认使用中文。
+- 权限码保持为稳定的技术标识。
 
-When adding built-in permission codes, update:
+新增内置权限码时，需要更新：
 
 - `backend/app/const/permissions.py`
 - `frontend/src/i18n/messages.js`
-- Seed or startup sync logic if needed.
-- This document and `docs/api-contracts.md` if API behavior changes.
+- 必要时更新 seed 或启动同步逻辑。
+- API 行为变化时，同步更新本文档和 `docs/api-contracts.md`。
 
-When adding built-in menus or naming rules, update:
+新增内置菜单或菜单命名规则时，需要更新：
 
 - `backend/app/components/menu_localization.py`
-- Seed/menu initialization scripts.
-- Frontend route metadata and i18n copy.
-- `docs/business-module-guide.md` if the module pattern changes.
+- seed/菜单初始化脚本。
+- 前端路由 metadata 和 i18n 文案。
+- 如果模块模式变化，同步更新 `docs/business-module-guide.md`。

@@ -1,30 +1,30 @@
 # /progress
 
-## Purpose
+## 用途
 
-Generate a concise project progress report.
+生成简洁的项目进度报告。
 
-## Read First
+## 先读
 
 1. `docs/project-state.md`
 2. `docs/todos.md`
 3. `docs/acceptance/`
 4. `docs/decisions.md`
 
-## Steps
+## 步骤
 
-1. Summarize current phase.
-2. Summarize completed platform capabilities.
-3. List active todos and blockers.
-4. Include recent acceptance results.
-5. Note documentation or test gaps.
+1. 总结当前阶段。
+2. 总结已完成的平台能力。
+3. 列出当前待办和阻塞项。
+4. 纳入最近验收结果。
+5. 标注文档或测试缺口。
 
-## Output
+## 输出
 
-Return:
+返回：
 
-- Current phase.
-- Completed work.
-- In-progress or open work.
-- Risks/blockers.
-- Recommended next step.
+- 当前阶段。
+- 已完成工作。
+- 进行中或开放任务。
+- 风险/阻塞。
+- 推荐下一步。

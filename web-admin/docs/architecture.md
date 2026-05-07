@@ -1,12 +1,12 @@
-# Architecture
+# 架构说明
 
-## Overview
+## 总览
 
-`web-admin` is a frontend-backend separated admin application.
+`web-admin` 是前后端分离的管理后台。
 
 ```text
 Vue 3 SPA
-  -> Axios with JWT
+  -> Axios + JWT
 Flask-RESTX API under /api
   -> service layer
   -> repository layer
@@ -16,70 +16,70 @@ Flask-RESTX API under /api
 Flask app -> Celery -> Redis broker/result backend
 ```
 
-## Backend Structure
+## 后端结构
 
 ```text
 backend/
   app/
     __init__.py              # create_app()
     apis/                    # Flask-RESTX namespaces
-    service/                 # business logic
+    service/                 # 业务逻辑
     database/
-      entity/                # SQLAlchemy models and association tables
-      repository/            # query/write helpers
-      conn/                  # engine/session helpers
-    components/              # response, permission, serializers, pagination, localization
-    conf/                    # config and extension setup
-    const/                   # error codes and permission constants
-    tasks/                   # Celery tasks
-    utils/                   # small helpers
-  scripts/                   # schema, seed, upgrade scripts
-  tests/                     # pytest suite
+      entity/                # SQLAlchemy 模型与关联表
+      repository/            # 查询与写入辅助函数
+      conn/                  # engine/session 辅助逻辑
+    components/              # 响应、权限、序列化、分页、本地化
+    conf/                    # 配置和扩展初始化
+    const/                   # 错误码与权限常量
+    tasks/                   # Celery 任务
+    utils/                   # 小型工具函数
+  scripts/                   # 建表、seed、升级脚本
+  tests/                     # pytest 测试
 ```
 
-The route layer converts HTTP input/output. Services own validation, transactions, and business rules. Repositories encapsulate data access. Entities define persistence shape.
+路由层负责 HTTP 输入输出转换。Service 层负责校验、事务和业务规则。Repository 层封装数据访问。Entity 层定义持久化结构。
 
-## Frontend Structure
+## 前端结构
 
 ```text
 frontend/src/
   api/                       # Axios client functions
-  components/AppLayout.vue   # authenticated shell, menu, tabs
-  router/index.js            # routes and guards
-  stores/                    # auth, menu, tabs, locale
-  views/                     # admin pages
-  i18n/messages.js           # zh-CN/en-US copy
-  assets/                    # design tokens and base CSS
+  components/AppLayout.vue   # 认证后布局壳层、菜单、标签页
+  router/index.js            # 路由与守卫
+  stores/                    # auth、menu、tabs、locale
+  views/                     # 管理页面
+  i18n/messages.js           # zh-CN/en-US 文案
+  assets/                    # 设计令牌和基础 CSS
 ```
 
-The frontend shell loads the user's menu tree after login, derives allowed paths, and blocks inaccessible routes.
+前端壳层会在登录后加载用户菜单树，推导可访问路径，并阻止访问未授权路由。
 
-## Main Data Flows
+## 主要数据流
 
-### Login
+### 登录
 
-1. Frontend posts credentials to `/api/auth/login`.
-2. Backend validates user and password hash.
-3. Backend returns access token, refresh token, and user summary.
-4. Frontend stores tokens and loads `/api/menus/my-tree`.
-5. Router allows only menu-authorized paths.
+1. 前端向 `/api/auth/login` 提交账号密码。
+2. 后端校验用户和密码哈希。
+3. 后端返回 access token、refresh token 和用户摘要。
+4. 前端存储 token，并加载 `/api/menus/my-tree`。
+5. 路由守卫只允许访问菜单授权路径。
 
-### Protected API Request
+### 受保护 API 请求
 
-1. Axios injects `Authorization: Bearer <access_token>`.
-2. Flask-JWT-Extended validates the token and blocklist state.
-3. Route-level permission decorator checks RBAC.
-4. Service performs validation and repository calls.
-5. Response is wrapped with the unified response shape.
+1. Axios 注入 `Authorization: Bearer <access_token>`。
+2. Flask-JWT-Extended 校验 token 和黑名单状态。
+3. 路由权限装饰器检查 RBAC 权限。
+4. Service 层完成校验和 repository 调用。
+5. 响应用统一响应格式包装。
 
-### Role Menu And Permission Assignment
+### 角色菜单与权限联动分配
 
-1. Frontend submits `menu_ids` and optional `permission_ids` to `/api/roles/{id}/menus`.
-2. Backend requires `role:assign_menu`.
-3. If permissions are included, backend also requires `role:assign_permission`.
-4. Backend verifies permissions are within the submitted menu scope.
-5. Menus and permissions are updated in one transaction.
+1. 前端向 `/api/roles/{id}/menus` 提交 `menu_ids` 和可选 `permission_ids`。
+2. 后端要求 `role:assign_menu`。
+3. 如果提交了权限，还要求 `role:assign_permission`。
+4. 后端校验权限是否在所选菜单可管辖范围内。
+5. 菜单和权限在同一事务中更新。
 
-## Configuration
+## 配置
 
-Configuration is loaded through `backend/app/conf/config.py`. Development may load `backend/.env` or `backend/.env.example`; production must provide required secrets and database configuration through environment variables.
+配置通过 `backend/app/conf/config.py` 加载。开发环境可以读取 `backend/.env` 或 `backend/.env.example`；生产环境必须通过环境变量提供必要密钥和数据库配置。

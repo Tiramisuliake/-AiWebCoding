@@ -1,55 +1,55 @@
-# Frontend Agent Guide
+# 前端 Agent 指南
 
-## Scope
+## 范围
 
-This directory contains the Vue 3 SPA, Element Plus UI, Pinia stores, router guards, API clients, i18n messages, and design tokens.
+本目录包含 Vue 3 SPA、Element Plus UI、Pinia stores、路由守卫、API 客户端、i18n 文案和设计令牌。
 
-Read the root `AGENTS.md` first, then this file for frontend-specific rules.
+先读根目录 `AGENTS.md`，再读本文件。
 
-## Architecture Rules
+## 架构规则
 
-- Use Vue 3 `script setup` and the Composition API for new or rewritten views.
-- Call backend APIs through `src/api/http.js`, `src/api/auth.js`, and `src/api/rbac.js`.
-- Keep auth state in `src/stores/auth.js`.
-- Keep menu access state in `src/stores/menu.js`.
-- Keep tab state in `src/stores/tabs.js`.
-- Keep language state in `src/stores/locale.js` and messages in `src/i18n/messages.js`.
-- Keep shared shell behavior in `src/components/AppLayout.vue`.
+- 新增或重写页面优先使用 Vue 3 `script setup` 和 Composition API。
+- 后端请求统一通过 `src/api/http.js`、`src/api/auth.js`、`src/api/rbac.js`。
+- 认证状态放在 `src/stores/auth.js`。
+- 菜单访问状态放在 `src/stores/menu.js`。
+- 标签页状态放在 `src/stores/tabs.js`。
+- 语言状态放在 `src/stores/locale.js`，文案放在 `src/i18n/messages.js`。
+- 认证后的布局壳层行为放在 `src/components/AppLayout.vue`。
 
-## Routing And Access
+## 路由与访问控制
 
-- New authenticated pages must be children of `AppLayout`.
-- Route meta for tabbed pages must include `tab`, `keepAlive`, and `titleKey`.
-- The route guard loads `/api/menus/my-tree` and blocks paths not present in `allowedPaths`.
-- New menu-backed pages must have matching backend menu records and permission mappings.
+- 新增认证页面必须作为 `AppLayout` 的子路由。
+- 需要进入标签页体系的页面必须配置 `tab`、`keepAlive`、`titleKey`。
+- 路由守卫会加载 `/api/menus/my-tree`，并阻止访问不在 `allowedPaths` 中的路径。
+- 新增由菜单驱动的页面时，必须有匹配的后端菜单记录和权限映射。
 
-## UI And Copy
+## UI 与文案
 
-- Preserve the existing Element Plus admin style.
-- Use `src/assets/design-tokens.css` for theme values; do not hardcode new theme colors unless a token is missing and added intentionally.
-- User-facing text must be added to both `zh-CN` and `en-US` in `src/i18n/messages.js`.
-- Permission and menu management are Chinese-first by design; permission codes remain technical identifiers.
-- New management pages should follow the existing table/search/dialog pattern in Users, Roles, Permissions, and Menus.
+- 保持现有 Element Plus 管理后台风格。
+- 主题值使用 `src/assets/design-tokens.css`；不要绕过 token 直接硬编码新主题色，除非明确新增 token。
+- 所有用户可见文案都必须同时加入 `zh-CN` 和 `en-US`。
+- 权限和菜单管理页面采用中文优先展示，权限码保留为技术标识。
+- 新增管理页面优先沿用 Users、Roles、Permissions、Menus 的表格/搜索/弹窗模式。
 
-## Adding A Frontend Feature
+## 新增前端功能
 
-For a new business module:
+新增业务模块时：
 
-- Add API client functions.
-- Add route and page view.
-- Add menu/permission seed expectations to docs.
-- Add i18n keys for all user-facing copy.
-- Add tab metadata for pages that should appear in the shell.
-- Keep loading, empty, validation, success, and failure states explicit.
-- Update `docs/api-contracts.md` when frontend payloads or query parameters change.
+- 增加 API client 函数。
+- 增加路由和页面视图。
+- 在文档中说明菜单和权限 seed 预期。
+- 为所有用户可见文案增加 i18n key。
+- 需要进入标签页的页面增加 tab metadata。
+- 明确 loading、empty、validation、success、failure 状态。
+- 前端 payload 或 query 参数变化时，更新 `docs/api-contracts.md`。
 
-## Checks
+## 检查
 
-Run from `web-admin/`:
+在 `web-admin/` 目录运行：
 
 ```powershell
 npm --prefix frontend run build
 python scripts/run_ci.py --quick
 ```
 
-Use the Vite dev server for manual UI verification when a visual or routing change is made.
+涉及视觉或路由变化时，使用 Vite dev server 做手工验证。

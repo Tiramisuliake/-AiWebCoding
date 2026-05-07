@@ -1,33 +1,33 @@
 # /dev
 
-## Purpose
+## 用途
 
-Develop a new feature from business intent through implementation and verification.
+从业务意图出发，完成新功能的设计、实现和验证。
 
-## Read First
+## 先读
 
 1. `AGENTS.md`
 2. `docs/project-state.md`
 3. `docs/business-module-guide.md`
 4. `docs/api-contracts.md`
 5. `docs/rbac-and-menu.md`
-6. `backend/AGENTS.md` or `frontend/AGENTS.md` as needed.
+6. 按需读取 `backend/AGENTS.md` 或 `frontend/AGENTS.md`。
 
-## Steps
+## 步骤
 
-1. Clarify the feature goal, users, workflow, and acceptance criteria.
-2. Create or update a business module document using `templates/业务模块模板.md`.
-3. Define API, permission codes, menu entry, frontend route, tests, and docs to update.
-4. Implement the smallest coherent slice.
-5. Update API/RBAC/project docs in the same change.
-6. Run relevant checks.
-7. Record acceptance notes for user-facing behavior.
+1. 明确功能目标、用户、流程和验收标准。
+2. 使用 `templates/业务模块模板.md` 创建或更新业务模块文档。
+3. 定义 API、权限码、菜单入口、前端路由、测试和需要同步的文档。
+4. 实现最小可验证功能切片。
+5. 在同一改动中更新 API/RBAC/项目状态文档。
+6. 运行相关检查。
+7. 对用户可见行为记录验收结果。
 
-## Output
+## 输出
 
-Return:
+返回：
 
-- Summary of feature behavior.
-- Changed files grouped by backend, frontend, and docs.
-- Checks run and results.
-- Remaining risks or follow-up todos.
+- 功能行为摘要。
+- 按后端、前端、文档分组的修改文件。
+- 已运行检查和结果。
+- 剩余风险或后续待办。

@@ -1,10 +1,10 @@
 # /init-docs
 
-## Purpose
+## 用途
 
-Create or repair the documentation skeleton for this project.
+创建或修复项目文档骨架。
 
-## Read First
+## 先读
 
 1. `AGENTS.md`
 2. `docs/index.md`
@@ -12,19 +12,19 @@ Create or repair the documentation skeleton for this project.
 4. `templates/项目状态模板.md`
 5. `templates/业务模块模板.md`
 
-## Steps
+## 步骤
 
-1. Check that `docs/`, `commands/`, and `templates/` exist.
-2. Check that all files listed in `docs/index.md` exist.
-3. Recreate missing files from templates.
-4. Do not overwrite non-empty documents without explicit user request.
-5. Report missing, created, and skipped files.
+1. 检查 `docs/`、`commands/`、`templates/` 是否存在。
+2. 检查 `docs/index.md` 中列出的文件是否存在。
+3. 使用模板补齐缺失文件。
+4. 未经用户明确要求，不覆盖非空文档。
+5. 汇报缺失、创建和跳过的文件。
 
-## Output
+## 输出
 
-Return:
+返回：
 
-- Existing docs.
-- Created docs.
-- Skipped docs.
-- Any content that still needs human input.
+- 已存在文档。
+- 已创建文档。
+- 已跳过文档。
+- 仍需要人工补充的内容。

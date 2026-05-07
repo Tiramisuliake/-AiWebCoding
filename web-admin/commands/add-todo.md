@@ -1,26 +1,26 @@
 # /add-todo
 
-## Purpose
+## 用途
 
-Add a structured todo to `docs/todos.md`.
+向 `docs/todos.md` 添加结构化待办。
 
-## Read First
+## 先读
 
 1. `docs/todos.md`
 2. `templates/待办清单模板.md`
 
-## Steps
+## 步骤
 
-1. Capture task, module, priority, source, and acceptance criteria.
-2. Use status `open` unless work has already started.
-3. Use priority `P0` only for urgent breakage or security issues.
-4. Add or update a row in `docs/todos.md`.
-5. Avoid duplicating existing todos.
+1. 明确任务、模块、优先级、来源和验收标准。
+2. 除非工作已经开始，否则状态使用 `open`。
+3. 只有紧急故障或安全问题使用 `P0`。
+4. 在 `docs/todos.md` 中新增或更新一行。
+5. 避免重复添加已有待办。
 
-## Output
+## 输出
 
-Return:
+返回：
 
-- Todo added or updated.
-- Priority and rationale.
-- Acceptance criteria.
+- 已新增或更新的待办。
+- 优先级和理由。
+- 验收标准。

@@ -1,40 +1,40 @@
 # /check
 
-## Purpose
+## 用途
 
-Run full code and documentation verification for the current change.
+对当前改动运行代码和文档验证。
 
-## Read First
+## 先读
 
 1. `AGENTS.md`
 2. `docs/project-state.md`
-3. Changed files from `git status --short`
+3. `git status --short` 中的变更文件。
 
-## Steps
+## 步骤
 
-1. Inspect current changes.
-2. Run focused tests for the changed area when possible.
-3. Run project checks from `web-admin/`:
+1. 检查当前改动范围。
+2. 尽可能先运行改动区域的聚焦测试。
+3. 在 `web-admin/` 下运行：
 
 ```powershell
 python scripts/run_ci.py --quick
 npm --prefix frontend run build
 ```
 
-4. Run backend tests from `web-admin/backend/`:
+4. 在 `web-admin/backend/` 下运行：
 
 ```powershell
 python -m pytest tests -v
 ```
 
-5. If broad checks fail, report the first actionable failure and likely owner.
-6. Do not hide warnings that affect release confidence.
+5. 如果检查失败，报告第一个可操作失败点和可能归属区域。
+6. 不隐藏会影响发布信心的 warning。
 
-## Output
+## 输出
 
-Return:
+返回：
 
-- Commands run.
-- Pass/fail result for each command.
-- Important warnings.
-- Required fixes or confidence statement.
+- 已运行命令。
+- 每条命令的通过/失败结果。
+- 重要 warning。
+- 必须修复项或可信结论。

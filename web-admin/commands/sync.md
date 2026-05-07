@@ -1,10 +1,10 @@
 # /sync
 
-## Purpose
+## 用途
 
-Synchronize current documentation with actual code behavior.
+按照当前代码行为同步项目文档。
 
-## Read First
+## 先读
 
 1. `docs/index.md`
 2. `docs/project-state.md`
@@ -12,19 +12,19 @@ Synchronize current documentation with actual code behavior.
 4. `docs/architecture.md`
 5. `docs/rbac-and-menu.md`
 
-## Steps
+## 步骤
 
-1. Inspect changed backend routes, services, models, frontend routes, stores, and API clients.
-2. Update API contracts when endpoints, payloads, filters, or response data changed.
-3. Update architecture when structure or data flow changed.
-4. Update RBAC/menu docs when permission codes, menu rules, or localization changed.
-5. Update project state when a feature becomes complete.
-6. Add acceptance notes for completed user-facing flows.
+1. 检查变更过的后端 routes、services、models、前端 routes、stores 和 API clients。
+2. 端点、payload、筛选条件或响应数据变化时，更新 API 契约。
+3. 结构或数据流变化时，更新架构文档。
+4. 权限码、菜单规则或本地化变化时，更新 RBAC/菜单文档。
+5. 功能完成时，更新项目状态。
+6. 用户可见流程完成时，增加验收记录。
 
-## Output
+## 输出
 
-Return:
+返回：
 
-- Docs updated.
-- Code facts used as evidence.
-- Any stale or unresolved documentation areas.
+- 已更新文档。
+- 用作依据的代码事实。
+- 仍然陈旧或未解决的文档区域。

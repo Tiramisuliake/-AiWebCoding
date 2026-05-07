@@ -1,70 +1,70 @@
-# Backend Agent Guide
+# 后端 Agent 指南
 
-## Scope
+## 范围
 
-This directory contains the Flask-RESTX API, SQLAlchemy models/repositories, services, Celery wiring, scripts, and pytest tests.
+本目录包含 Flask-RESTX API、SQLAlchemy 模型与仓储、服务层、Celery 接入、脚本和 pytest 测试。
 
-Read the root `AGENTS.md` first, then this file for backend-specific rules.
+先读根目录 `AGENTS.md`，再读本文件。
 
-## Architecture Rules
+## 架构规则
 
-- Create Flask apps only through `app.create_app()`.
-- Keep request handling in `app/apis/*/routes.py`.
-- Put business logic in `app/service/`.
-- Put database access helpers in `app/database/repository/`.
-- Put ORM models and association tables in `app/database/entity/`.
-- Keep shared response, permission, pagination, serialization, and localization helpers in `app/components/`.
-- Keep configuration in `app/conf/config.py` and extension setup in `app/conf/extensions.py`.
+- Flask 应用只能通过 `app.create_app()` 创建。
+- 请求处理放在 `app/apis/*/routes.py`。
+- 业务逻辑放在 `app/service/`。
+- 数据访问辅助逻辑放在 `app/database/repository/`。
+- ORM 模型与关联表放在 `app/database/entity/`。
+- 通用响应、权限、分页、序列化、本地化辅助逻辑放在 `app/components/`。
+- 配置放在 `app/conf/config.py`，扩展初始化放在 `app/conf/extensions.py`。
 
-Do not put complex database logic directly in route handlers.
+不要在路由处理函数中直接写复杂数据库逻辑。
 
-## API And Response Rules
+## API 与响应规则
 
-- All business API routes live under `/api`.
-- API docs are exposed at `/api/docs`.
-- Use `ok()` and `fail()` from `app/components/response.py`.
-- Keep response shape consistent:
+- 业务 API 路由统一位于 `/api` 下。
+- API 文档入口为 `/api/docs`。
+- 使用 `app/components/response.py` 中的 `ok()` 和 `fail()`。
+- 保持响应格式一致：
 
 ```json
 { "code": 0, "data": {}, "msg": "ok" }
 ```
 
-- Use `ServiceError` for expected business failures and convert it in the route layer.
-- Keep validation failures on code `1001`, missing resources on `1002`, conflicts on `1003`, auth failures on `2001`, permission failures on `2002`, and server failures on `5001`.
+- 预期内业务异常使用 `ServiceError`，由路由层转换为响应。
+- 参数校验失败使用 `1001`，资源不存在使用 `1002`，冲突使用 `1003`，认证失败使用 `2001`，权限不足使用 `2002`，服务端错误使用 `5001`。
 
-## Auth, RBAC, And Sessions
+## 认证、RBAC 与 Session
 
-- Protected endpoints require `@jwt_required()`.
-- Permissioned endpoints also require `@require_permission("module:action")`.
-- `admin` role permission bypass behavior is implemented in the authz service; do not duplicate it in routes.
-- Use SQLAlchemy ORM only. Do not build SQL with string concatenation.
-- Use the configured scoped session helpers in `app/database/conn/`.
-- Rely on app teardown to remove sessions at request end.
+- 受保护接口必须使用 `@jwt_required()`。
+- 需要权限控制的接口还必须使用 `@require_permission("module:action")`。
+- `admin` 角色放行逻辑在 authz service 中实现，不要在路由层重复实现。
+- 数据库操作只使用 SQLAlchemy ORM，不拼接 SQL 字符串。
+- 使用 `app/database/conn/` 中配置好的 scoped session。
+- 请求结束依赖 app teardown 清理 session。
 
-## Adding A Backend Feature
+## 新增后端功能
 
-For a new business module:
+新增业务模块时：
 
-- Define or update ORM entities and repository helpers.
-- Add service functions with validation and transaction boundaries.
-- Add Flask-RESTX namespace/routes.
-- Add permission codes and Chinese localization mappings.
-- Add seed/menu initialization when the module needs navigation.
-- Update `docs/api-contracts.md` and `docs/rbac-and-menu.md`.
-- Add pytest coverage for auth, permissions, happy path, validation, and destructive operations.
+- 定义或更新 ORM 实体和 repository 辅助函数。
+- 增加 service 函数，放入校验、事务边界和业务规则。
+- 增加 Flask-RESTX namespace/routes。
+- 增加权限码和中文本地化映射。
+- 模块需要导航时，同步 seed/菜单初始化。
+- 更新 `docs/api-contracts.md` 和 `docs/rbac-and-menu.md`。
+- 增加 pytest 覆盖认证、权限、正常路径、校验失败和删除规则。
 
-## Checks
+## 检查
 
-Run backend tests from `web-admin/backend/`:
+后端测试在 `web-admin/backend/` 目录运行：
 
 ```powershell
 python -m pytest tests -v
 ```
 
-Run project CI from `web-admin/`:
+项目 CI 在 `web-admin/` 目录运行：
 
 ```powershell
 python scripts/run_ci.py
 ```
 
-Use narrower pytest targets while developing, then run the full backend suite before delivery.
+开发时可以先跑更窄的 pytest 目标，交付前再跑完整后端测试。

@@ -1,28 +1,28 @@
 # /start
 
-## Purpose
+## 用途
 
-Quickly understand the project in a new Codex window.
+在新的 Codex 窗口中快速理解项目。
 
-## Read First
+## 先读
 
 1. `AGENTS.md`
 2. `docs/index.md`
 3. `docs/project-state.md`
-4. Relevant subsystem guide if the user mentions backend or frontend.
+4. 如果用户提到后端或前端，再读对应子系统指南。
 
-## Steps
+## 步骤
 
-1. Summarize current project phase and implemented capabilities.
-2. Identify the user's likely task area.
-3. Read only the relevant docs and code entrypoints.
-4. Report current state, likely next step, and immediate risks.
+1. 总结当前项目阶段和已实现能力。
+2. 判断用户任务可能涉及的区域。
+3. 只读取与任务相关的文档和代码入口。
+4. 汇报当前状态、可能的下一步和即时风险。
 
-## Output
+## 输出
 
-Return:
+返回：
 
-- Current state in 3-5 bullets.
-- Relevant files/docs to use next.
-- Suggested next action.
-- Any blocker or ambiguity that needs user input.
+- 当前状态，3-5 条。
+- 下一步需要使用的相关文件/文档。
+- 建议动作。
+- 需要用户确认的阻塞或歧义。
