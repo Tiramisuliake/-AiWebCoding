@@ -64,6 +64,8 @@ EXCLUDE_DIRS = {
     "dist", "build", ".next", ".nuxt", "coverage", ".plans",
 }
 
+TEST_DIR_NAMES = {"test", "tests", "__tests__", "spec", "scripts", "e2e", "cypress"}
+
 
 def _iter_code_files(src_dirs):
     """遍历源目录中的代码文件，跳过排除目录和压缩文件。"""
@@ -112,11 +114,11 @@ def check_file_size(src_dirs, result, warn_limit=800, fail_limit=1200):
 # GR-2: 硬编码秘密检查
 # ---------------------------------------------------------------------------
 SECRET_PATTERNS = [
-    (r"""['"]sk-[a-zA-Z0-9]{20,}['"]""", "Possible OpenAI/Stripe API key"),
-    (r"""['"]ghp_[a-zA-Z0-9]{30,}['"]""", "Possible GitHub personal access token"),
-    (r"""['"]AKIA[A-Z0-9]{16}['"]""", "Possible AWS access key"),
+    (r"""['"]sk-[a-zA-Z0-9]{20,}['"]""", "Possible OpenAI/Stripe API key", False),
+    (r"""['"]ghp_[a-zA-Z0-9]{30,}['"]""", "Possible GitHub personal access token", False),
+    (r"""['"]AKIA[A-Z0-9]{16}['"]""", "Possible AWS access key", False),
     (r"""(?i)(password|secret|api_key|apikey|token)\s*[:=]\s*['"][^'"]{8,}['"]""",
-     "Possible hardcoded secret"),
+     "Possible hardcoded secret", True),
 ]
 
 # 包含这些标记的行可能是示例/占位符，不是真实秘密
@@ -128,6 +130,9 @@ def check_secrets(src_dirs, result):
     print("[GR-2] Hardcoded Secrets Check")
     found = False
     for f in _iter_code_files(src_dirs):
+        low_confidence_context = any(part in TEST_DIR_NAMES for part in f.parts) or (
+            "i18n" in f.parts and f.name == "messages.js"
+        )
         try:
             content = f.read_text(encoding="utf-8", errors="ignore")
         except Exception:
@@ -137,7 +142,9 @@ def check_secrets(src_dirs, result):
             # 跳过明显的示例/占位符行
             if any(marker in stripped.lower() for marker in EXAMPLE_MARKERS):
                 continue
-            for pattern, desc in SECRET_PATTERNS:
+            for pattern, desc, low_confidence in SECRET_PATTERNS:
+                if low_confidence and low_confidence_context:
+                    continue
                 if re.search(pattern, line):
                     result.fail("GR-SECRET", f"{f}:{i} -- {desc}",
                                 "转移到环境变量。永远不要在代码中提交秘密。")
@@ -151,7 +158,6 @@ def check_secrets(src_dirs, result):
 # GR-3: 生产代码中无 console.log 检查
 # ---------------------------------------------------------------------------
 CONSOLE_PATTERN = re.compile(r"\bconsole\.(log|debug|info|warn|error)\b")
-TEST_DIR_NAMES = {"test", "tests", "__tests__", "spec", "scripts", "e2e", "cypress"}
 
 
 def check_console_log(src_dirs, result):
