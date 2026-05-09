@@ -11,7 +11,7 @@
 
     # 从 run_ci.py 调用
     from golden_rules import check_all
-    result = check_all(["src/backend", "src/frontend"], docs_dir=".plans/<project>/docs")
+    result = check_all(["src/backend", "src/frontend"], docs_dir=".codex/docs")
 
 错误消息遵循代理可读的格式：
     [TAG] <问题描述>
@@ -189,7 +189,7 @@ def check_console_log(src_dirs, result):
 # GR-4: 文档新鲜度检查（需要 git）
 # ---------------------------------------------------------------------------
 def check_doc_freshness(docs_dir, src_dirs, result, stale_commit_threshold=10):
-    """比较 docs/ 最后修改的提交与源代码提交。
+    """比较 .codex/docs/ 最后修改的提交与源代码提交。
 
     如果源代码自上次更新文档后有 N+ 个提交，则发出警告。
     需要 git。如果 git 不可用或 docs_dir 不存在则静默跳过。
@@ -197,7 +197,7 @@ def check_doc_freshness(docs_dir, src_dirs, result, stale_commit_threshold=10):
     print("[GR-4] 文档新鲜度检查")
     docs_path = Path(docs_dir)
     if not docs_path.exists():
-        print("  [SKIP] 未找到 docs/ 目录。跳过新鲜度检查。\n")
+        print("  [SKIP] 未找到 .codex/docs/ 目录。跳过新鲜度检查。\n")
         return
 
     doc_files = {
@@ -254,7 +254,7 @@ def check_invariant_coverage(docs_dir, result):
     print("[GR-5] 不变量覆盖率检查")
     inv_file = Path(docs_dir) / "invariants.md"
     if not inv_file.exists():
-        print("  [SKIP] 未找到 docs/invariants.md。跳过。\n")
+        print("  [SKIP] 未找到 .codex/docs/invariants.md。跳过。\n")
         return
 
     try:
@@ -268,7 +268,7 @@ def check_invariant_coverage(docs_dir, result):
         if re.search(r"(?i)status:\s*no\s*test", line):
             result.info(
                 "GR-INV-NO-TEST",
-                f"docs/invariants.md:{i} -- 没有自动化测试的不变量：{line.strip()[:80]}",
+                f".codex/docs/invariants.md:{i} -- 没有自动化测试的不变量：{line.strip()[:80]}",
                 "为此不变量编写自动化测试。未经测试的不变量依赖人工记忆。")
             no_test_count += 1
 
@@ -316,7 +316,7 @@ def check_all(src_dirs, docs_dir=None):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("用法：python golden_rules.py <src_dir1> [src_dir2] ... [--docs <docs_dir>]")
-        print("示例：python golden_rules.py src/ --docs .plans/myproject/docs")
+        print("示例：python golden_rules.py src/ --docs .codex/docs")
         sys.exit(2)
 
     args = sys.argv[1:]

@@ -4,7 +4,7 @@
 
 本目录包含 Vue 3 SPA、Element Plus UI、Pinia stores、路由守卫、API 客户端、i18n 文案和设计令牌。
 
-先读根目录 `AGENTS.md`，再读本文件。
+先读 `../AGENTS.md` 和 `../.codex/docs/project-state.md`，再读本文件。
 
 ## 架构规则
 
@@ -41,7 +41,7 @@
 - 为所有用户可见文案增加 i18n key。
 - 需要进入标签页的页面增加 tab metadata。
 - 明确 loading、empty、validation、success、failure 状态。
-- 前端 payload 或 query 参数变化时，更新 `docs/api-contracts.md`。
+- 前端 payload 或 query 参数变化时，更新 `.codex/docs/api-contracts.md`。
 
 ## 检查
 

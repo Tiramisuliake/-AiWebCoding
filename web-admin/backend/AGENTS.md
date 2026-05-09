@@ -4,7 +4,7 @@
 
 本目录包含 Flask-RESTX API、SQLAlchemy 模型与仓储、服务层、Celery 接入、脚本和 pytest 测试。
 
-先读根目录 `AGENTS.md`，再读本文件。
+先读 `../AGENTS.md` 和 `../.codex/docs/project-state.md`，再读本文件。
 
 ## 架构规则
 
@@ -50,7 +50,7 @@
 - 增加 Flask-RESTX namespace/routes。
 - 增加权限码和中文本地化映射。
 - 模块需要导航时，同步 seed/菜单初始化。
-- 更新 `docs/api-contracts.md` 和 `docs/rbac-and-menu.md`。
+- 更新 `.codex/docs/api-contracts.md` 和 `.codex/docs/rbac-and-menu.md`。
 - 增加 pytest 覆盖认证、权限、正常路径、校验失败和删除规则。
 
 ## 检查

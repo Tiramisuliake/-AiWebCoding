@@ -43,7 +43,7 @@ def run_golden_rules():
         print("[SKIP] 源代码目录尚未创建，跳过黄金原则检查")
         return 0, 0, 0
 
-    docs_dir = str(ROOT / "docs")
+    docs_dir = str(ROOT / ".codex" / "docs")
     failures, warnings, infos = gr.check_all(src_dirs, docs_dir=docs_dir)
     return failures, warnings, infos
 
