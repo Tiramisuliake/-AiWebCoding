@@ -1,5 +1,8 @@
 """分钟级数据采集（1m/5m/15m/30m/60m）"""
 
+from utils.network import ensure_proxy_disabled
+ensure_proxy_disabled()
+
 import time
 from datetime import date, datetime, timedelta
 from decimal import Decimal

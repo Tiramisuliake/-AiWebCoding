@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
@@ -66,7 +67,7 @@ def run_for_asset(code: str, name: str, strategy) -> int:
 
         signals = strategy.generate_signals(code, df)
 
-        count = 0
+        new_signals = []
         for sig in signals:
             exists = session.execute(
                 select(TradingSignal.id).where(
@@ -86,11 +87,11 @@ def run_for_asset(code: str, name: str, strategy) -> int:
                 strength=sig.get("strength"),
                 reason=sig.get("reason", ""),
             ))
-            count += 1
+            new_signals.append(sig)
 
         session.commit()
-        logger.info("{} {} 生成 {} 条信号", code, name, count)
-        return count
+        logger.info("{} {} 生成 {} 条信号", code, name, len(new_signals))
+        return len(new_signals)
 
     except Exception as e:
         session.rollback()
@@ -109,6 +110,7 @@ def main():
         help=f"策略名称，可用: {list_strategies()}",
     )
     parser.add_argument("--all-strategies", action="store_true", help="运行全部策略")
+    parser.add_argument("--no-notify", action="store_true", help="不推送飞书")
     args = parser.parse_args()
 
     strategy_names = list_strategies() if args.all_strategies else [args.strategy]
@@ -126,11 +128,27 @@ def main():
         remove_session()
 
     total = 0
+    per_strategy = {}
     for strategy in strategies:
+        s_total = 0
         for asset in assets:
-            total += run_for_asset(asset.code, asset.name, strategy)
+            s_total += run_for_asset(asset.code, asset.name, strategy)
+        per_strategy[strategy.name] = s_total
+        total += s_total
 
     logger.info("===== 策略信号生成完成，共 {} 条 =====", total)
+
+    if not args.no_notify and total > 0:
+        try:
+            from utils.notifier import send_text
+            today = date.today().strftime("%Y-%m-%d")
+            lines = [f"📊 {today} 策略信号汇总 (新增 {total} 条)"]
+            for name, n in per_strategy.items():
+                if n > 0:
+                    lines.append(f"  • {name}: {n}")
+            send_text("\n".join(lines))
+        except Exception as e:
+            logger.warning("飞书推送失败: {}", e)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,8 @@
 """实时行情推送服务（WebSocket）"""
 
+from utils.network import ensure_proxy_disabled
+ensure_proxy_disabled()
+
 import asyncio
 import json
 from datetime import datetime
