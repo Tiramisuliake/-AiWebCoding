@@ -38,12 +38,17 @@ quant/                          ← 与 web-admin/ 同级
 │   └── realtime.py             实时行情 WebSocket 推送
 ├── factor/
 │   ├── registry.py             因子注册表
-│   ├── basic_factors.py        基础因子（MA/收益率/波动率）
+│   ├── basic_factors.py        基础因子（MA/收益率/波动率，6 个）
+│   ├── technical_factors.py    技术指标（RSI/MACD/布林带/KDJ/ATR/量比，12 个）
 │   └── multi_factor.py         多因子选股模型
 ├── strategy/
 │   ├── base.py                 策略基类
-│   ├── ma_cross.py             MA均线交叉策略
-│   └── multi_factor_strategy.py 多因子选股策略
+│   ├── registry.py             策略注册表
+│   ├── ma_cross.py             MA 均线交叉
+│   ├── rsi_strategy.py         RSI 超买超卖反转
+│   ├── macd_strategy.py        MACD 金叉死叉
+│   ├── bollinger_strategy.py   布林带突破
+│   └── multi_factor_strategy.py 多因子选股
 ├── backtest/engine.py          回测引擎
 ├── report/daily_report.py      每日报告（Excel + 日志）
 ├── utils/logger.py             loguru 统一配置
@@ -97,12 +102,30 @@ python scripts/daily_pipeline.py
 
 | 阶段 | 内容 | 状态 |
 |---|---|---|
-| 1 | 基础设施 + 日线数据采集 | 进行中 |
-| 2 | 因子计算 + MA交叉信号 | 待开发 |
-| 3 | 回测引擎 | 待开发 |
-| 4 | 报告 + 全流程编排 | 待开发 |
-| 5 | 分钟级数据 + 实时行情推送 | 待开发 |
-| 6 | 多因子选股模型 | 待开发 |
+| 1 | 基础设施 + 日线数据采集 | ✅ 完成 |
+| 2 | 因子计算 + MA交叉信号 | ✅ 完成 |
+| 3 | 回测引擎 | ✅ 完成 |
+| 4 | 报告 + 全流程编排 | ✅ 完成 |
+| 5 | 分钟级数据 + 实时行情推送 | ✅ 完成 |
+| 6 | 多因子选股模型 | ✅ 完成 |
+| 7 | 扩充因子库（RSI/MACD/布林带/KDJ/ATR）+ 策略库 | ✅ 完成 |
+## 因子和策略一览
+
+**因子库（18 个）**
+- 基础：ma5/ma20/ma60, return_20d/60d, volatility_20d
+- 技术：rsi14, macd_dif/dea/hist, boll_upper/mid/lower, kdj_k/d/j, atr14, volume_ratio
+
+**策略库（4 个择时 + 1 个选股）**
+- `ma_cross` — MA 均线金叉/死叉
+- `rsi_reversal` — RSI 超买超卖反转
+- `macd_cross` — MACD 金叉/死叉
+- `bollinger_break` — 布林带突破
+- `multi_factor` — 多因子综合评分 top N 选股
+
+```powershell
+python scripts/run_strategy.py --strategy rsi_reversal
+python scripts/run_strategy.py --all-strategies        # 一次跑全部
+```
 
 ## 与 web-admin 的集成
 

@@ -17,6 +17,7 @@ from db.models import AssetPool, DailyPrice, FactorValue
 from db.session import get_session, remove_session
 from factor.registry import list_factors, get_factor_func
 import factor.basic_factors  # noqa: F401 — 触发 @register
+import factor.technical_factors  # noqa: F401 — 注册技术指标因子
 from utils.logger import setup_logger
 
 setup_logger()

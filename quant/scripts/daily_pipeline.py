@@ -47,16 +47,18 @@ def main():
     except Exception as e:
         logger.error("因子计算失败: {}", e)
 
-    # 3. 策略信号
+    # 3. 策略信号（全部策略）
     try:
         logger.info("----- 步骤 3/5: 策略信号生成 -----")
         from scripts.run_strategy import run_for_asset
-        from strategy.ma_cross import MaCrossStrategy
+        from strategy.registry import get_strategy, list_strategies
 
-        strategy = MaCrossStrategy()
         signal_total = 0
-        for asset in assets:
-            signal_total += run_for_asset(asset.code, asset.name, strategy)
+        for strategy_name in list_strategies():
+            strategy = get_strategy(strategy_name)
+            logger.info("运行策略: {}", strategy_name)
+            for asset in assets:
+                signal_total += run_for_asset(asset.code, asset.name, strategy)
         logger.info("信号生成完成: {} 条", signal_total)
     except Exception as e:
         logger.error("策略信号生成失败: {}", e)
@@ -69,10 +71,11 @@ def main():
 
         config = BacktestConfig()
         bt_success = 0
-        for asset in assets:
-            if backtest_asset(asset.code, asset.name, "ma_cross", config):
-                bt_success += 1
-        logger.info("回测完成: 成功 {} / {}", bt_success, len(assets))
+        for strategy_name in list_strategies():
+            for asset in assets:
+                if backtest_asset(asset.code, asset.name, strategy_name, config):
+                    bt_success += 1
+        logger.info("回测完成: {} 次", bt_success)
     except Exception as e:
         logger.error("回测失败: {}", e)
 
@@ -82,7 +85,8 @@ def main():
         from report.daily_report import generate_signal_report, generate_backtest_report
 
         generate_signal_report()
-        generate_backtest_report()
+        for strategy_name in list_strategies():
+            generate_backtest_report(strategy_name)
     except Exception as e:
         logger.error("报告生成失败: {}", e)
 

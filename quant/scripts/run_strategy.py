@@ -13,7 +13,7 @@ from sqlalchemy import select
 
 from db.models import AssetPool, DailyPrice, FactorValue, TradingSignal
 from db.session import get_session, remove_session
-from strategy.ma_cross import MaCrossStrategy
+from strategy.registry import get_strategy, list_strategies
 from utils.logger import setup_logger
 
 setup_logger()
@@ -103,12 +103,18 @@ def run_for_asset(code: str, name: str, strategy) -> int:
 def main():
     parser = argparse.ArgumentParser(description="运行策略生成交易信号")
     parser.add_argument("--code", help="指定资产代码（默认全部）")
-    parser.add_argument("--strategy", default="ma_cross", help="策略名称（默认 ma_cross）")
+    parser.add_argument(
+        "--strategy",
+        default="ma_cross",
+        help=f"策略名称，可用: {list_strategies()}",
+    )
+    parser.add_argument("--all-strategies", action="store_true", help="运行全部策略")
     args = parser.parse_args()
 
-    logger.info("===== 策略信号生成开始 [{}] =====", args.strategy)
+    strategy_names = list_strategies() if args.all_strategies else [args.strategy]
+    logger.info("===== 策略信号生成开始 {} =====", strategy_names)
 
-    strategy = MaCrossStrategy()
+    strategies = [get_strategy(name) for name in strategy_names]
 
     session = get_session()
     try:
@@ -120,8 +126,9 @@ def main():
         remove_session()
 
     total = 0
-    for asset in assets:
-        total += run_for_asset(asset.code, asset.name, strategy)
+    for strategy in strategies:
+        for asset in assets:
+            total += run_for_asset(asset.code, asset.name, strategy)
 
     logger.info("===== 策略信号生成完成，共 {} 条 =====", total)
 
